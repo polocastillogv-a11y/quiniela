@@ -5,7 +5,7 @@ const useQuinielaStore = create(
   persist(
     (set, get) => ({
       partidos: [],
-      pronosticos: [],
+      predicciones: {},
 
       setPartidos: (partidos) => set({ partidos }),
 
@@ -19,39 +19,23 @@ const useQuinielaStore = create(
         }))
       },
 
-      guardarPronostico: (participanteId, partidoId, local, visita) =>
+      setPrediccion: (participanteId, partidoId, valor) =>
         set(state => {
-          const existente = state.pronosticos.findIndex(
-            pr => pr.participanteId === participanteId && pr.partidoId === partidoId
-          )
-          let nuevos
-          if (existente >= 0) {
-            nuevos = [...state.pronosticos]
-            nuevos[existente] = { participanteId, partidoId, local, visita }
+          const preds = { ...state.predicciones }
+          if (!preds[participanteId]) preds[participanteId] = {}
+          if (valor === null) {
+            delete preds[participanteId][partidoId]
           } else {
-            nuevos = [...state.pronosticos, { participanteId, partidoId, local, visita }]
+            preds[participanteId][partidoId] = valor
           }
-          return { pronosticos: nuevos }
+          return { predicciones: preds }
         }),
 
-      getPronostico: (participanteId, partidoId) =>
-        get().pronosticos.find(
-          pr => pr.participanteId === participanteId && pr.partidoId === partidoId
-        ),
+      getPrediccion: (participanteId, partidoId) =>
+        get().predicciones[participanteId]?.[partidoId] || null,
 
-      getPronosticosDeParticipante: (participanteId) =>
-        get().pronosticos.filter(pr => pr.participanteId === participanteId),
-
-      getPuntosSorteo: (equiposParticipante) =>
-        calcularPuntosSorteo(equiposParticipante),
-
-      getPuntosPronostico: (participanteId) => {
-        const pronos = get().getPronosticosDeParticipante(participanteId)
-        return calcularPuntosPronostico(pronos)
-      },
-
-      getPartidosPorFase: (fase) =>
-        get().partidos.filter(p => p.fase === fase),
+      getPrediccionesDeParticipante: (participanteId) =>
+        get().predicciones[participanteId] || {},
     }),
     { name: 'quiniela-quiniela' }
   )

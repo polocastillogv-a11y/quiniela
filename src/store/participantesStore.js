@@ -3,15 +3,21 @@ import { persist } from 'zustand/middleware'
 
 let nextId = 1
 
+const ADMIN_TOKEN = 'admin2026'
+
 const useParticipantesStore = create(
   persist(
     (set, get) => ({
       participantes: [],
+      sesion: { tipo: null, participanteId: null, token: null },
 
-      agregar: (nombre, cuota = 0) => {
+      registrar: (nombre, token, cuota = 0) => {
+        const exists = get().participantes.find(p => p.token === token)
+        if (exists) return false
         const p = {
           id: nextId++,
           nombre,
+          token,
           cuota,
           pagado: false,
           fecha_pago: null,
@@ -21,6 +27,25 @@ const useParticipantesStore = create(
           fecha_registro: new Date().toISOString(),
         }
         set(state => ({ participantes: [...state.participantes, p] }))
+        set({ sesion: { tipo: 'participante', participanteId: p.id, token } })
+        return true
+      },
+
+      login: (token) => {
+        if (token === ADMIN_TOKEN) {
+          set({ sesion: { tipo: 'admin', participanteId: null, token } })
+          return 'admin'
+        }
+        const p = get().participantes.find(p => p.token === token)
+        if (p) {
+          set({ sesion: { tipo: 'participante', participanteId: p.id, token } })
+          return 'participante'
+        }
+        return false
+      },
+
+      logout: () => {
+        set({ sesion: { tipo: null, participanteId: null, token: null } })
       },
 
       editar: (id, datos) =>
@@ -30,10 +55,14 @@ const useParticipantesStore = create(
           ),
         })),
 
-      eliminar: (id) =>
+      eliminar: (id) => {
         set(state => ({
           participantes: state.participantes.filter(p => p.id !== id),
-        })),
+          sesion: state.sesion.participanteId === id
+            ? { tipo: null, participanteId: null, token: null }
+            : state.sesion,
+        }))
+      },
 
       togglePago: (id) =>
         set(state => ({
@@ -52,6 +81,8 @@ const useParticipantesStore = create(
         })),
 
       getParticipante: (id) => get().participantes.find(p => p.id === id),
+
+      getParticipanteByToken: (token) => get().participantes.find(p => p.token === token),
 
       getActivos: () => get().participantes.filter(p => p.activo !== false),
 

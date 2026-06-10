@@ -5,7 +5,6 @@ import useQuinielaStore from './store/quinielaStore'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
 import Participantes from './pages/Participantes'
-import Sorteo from './pages/Sorteo'
 import Quiniela from './pages/Quiniela'
 import Bolsa from './pages/Bolsa'
 import Bracket from './pages/Bracket'
@@ -23,7 +22,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/participantes" element={<Participantes />} />
-        <Route path="/sorteo" element={<Sorteo />} />
         <Route path="/quiniela" element={<Quiniela />} />
         <Route path="/bolsa" element={<Bolsa />} />
         <Route path="/bracket" element={<Bracket />} />

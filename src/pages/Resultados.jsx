@@ -1,83 +1,35 @@
-import { useState } from 'react'
 import useParticipantesStore from '../store/participantesStore'
-import useSorteoStore from '../store/sorteoStore'
 import useQuinielaStore from '../store/quinielaStore'
-import { getEquipo } from '../data/grupos'
-import { calcularPuntosSorteo, calcularPuntosPronostico } from '../utils/puntuacion'
+import { calcularPuntos } from '../utils/puntuacion'
 import Card from '../components/ui/Card'
-import FlagIcon from '../components/ui/FlagIcon'
 
 export default function Resultados() {
   const participantes = useParticipantesStore(s => s.participantes)
-  const asignaciones = useSorteoStore(s => s.asignaciones)
-  const sorteado = useSorteoStore(s => s.sorteado)
-  const getPronosticosDeParticipante = useQuinielaStore(s => s.getPronosticosDeParticipante)
   const partidos = useQuinielaStore(s => s.partidos)
-
-  const [modalidad, setModalidad] = useState('sorteo')
+  const predicciones = useQuinielaStore(s => s.predicciones)
 
   const activos = participantes.filter(p => p.activo !== false)
   const jugados = partidos.filter(p => p.actualizado).length
   const total = partidos.length
 
   const rankings = activos.map(p => {
-    const asig = asignaciones.find(a => a.participanteId === p.id)
-    const equiposIds = asig?.equipos || []
-
-    let puntos = 0
-    let detalle = []
-
-    if (modalidad === 'sorteo') {
-      const res = calcularPuntosSorteo(equiposIds)
-      puntos = res.puntos
-      detalle = res.detalles
-    } else {
-      const pronos = getPronosticosDeParticipante(p.id)
-      const res = calcularPuntosPronostico(pronos)
-      puntos = res.puntos
-      detalle = res.detalles
-    }
-
-    return { ...p, equiposIds, puntos, detalle }
+    const res = calcularPuntos(predicciones, p.id, partidos)
+    return { ...p, ...res }
   })
 
   rankings.sort((a, b) => b.puntos - a.puntos)
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Resultados</h1>
-          <p className="text-sm text-gray-500 mt-1">{jugados}/{total} partidos jugados</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setModalidad('sorteo')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              modalidad === 'sorteo' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-            }`}
-          >
-            Por Sorteo
-          </button>
-          <button
-            onClick={() => setModalidad('pronostico')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              modalidad === 'pronostico' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-            }`}
-          >
-            Por Pronóstico
-          </button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Resultados</h1>
+        <p className="text-sm text-gray-500 mt-1">{jugados}/{total} partidos jugados</p>
       </div>
 
       <Card>
         {activos.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <p>No hay participantes registrados</p>
-          </div>
-        ) : modalidad === 'sorteo' && !sorteado ? (
-          <div className="text-center py-12 text-gray-400">
-            <p>Aún no se ha realizado el sorteo de equipos</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -101,21 +53,7 @@ export default function Resultados() {
                   </div>
                 </div>
 
-                {modalidad === 'sorteo' && r.equiposIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {r.equiposIds.map(eqId => {
-                      const eq = getEquipo(eqId)
-                      return (
-                        <span key={eqId} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs">
-                          <FlagIcon code={eqId} size={14} />
-                          {eq?.nombre || eqId}
-                        </span>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {r.detalle.length > 0 && (
+                {r.detalle?.length > 0 && (
                   <details className="text-sm text-gray-500">
                     <summary className="cursor-pointer hover:text-gray-700">Ver detalle ({r.detalle.length} aciertos)</summary>
                     <ul className="mt-2 space-y-1 pl-4">
@@ -129,7 +67,7 @@ export default function Resultados() {
                   </details>
                 )}
 
-                {r.detalle.length === 0 && jugados > 0 && (
+                {(!r.detalle || r.detalle.length === 0) && jugados > 0 && (
                   <p className="text-xs text-gray-400 italic">Sin aciertos aún</p>
                 )}
               </div>

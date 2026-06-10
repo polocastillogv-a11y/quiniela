@@ -15,16 +15,18 @@ function formatDate(fecha) {
 }
 
 export default function Quiniela() {
+  const sesion = useParticipantesStore(s => s.sesion)
+  const login = useParticipantesStore(s => s.login)
   const participantes = useParticipantesStore(s => s.participantes)
   const partidos = useQuinielaStore(s => s.partidos)
   const actualizarResultado = useQuinielaStore(s => s.actualizarResultado)
-  const guardarPronostico = useQuinielaStore(s => s.guardarPronostico)
-  const getPronostico = useQuinielaStore(s => s.getPronostico)
+  const setPrediccion = useQuinielaStore(s => s.setPrediccion)
+  const getPrediccion = useQuinielaStore(s => s.getPrediccion)
+  const predicciones = useQuinielaStore(s => s.predicciones)
 
   const [faseActiva, setFaseActiva] = useState('grupos')
   const [jornadaActiva, setJornadaActiva] = useState(1)
-  const [participanteActivo, setParticipanteActivo] = useState(null)
-  const [editResultados, setEditResultados] = useState(false)
+  const [tokenInput, setTokenInput] = useState('')
 
   const partidosFase = partidos.filter(p => p.fase === faseActiva)
   const grupos = [...new Set(partidosFase.filter(p => p.grupo).map(p => p.grupo))]
@@ -41,32 +43,57 @@ export default function Quiniela() {
       }, {})
     : { '_': partidosFase }
 
+  const handleLogin = () => {
+    const res = login(tokenInput.trim())
+    if (res) setTokenInput('')
+  }
+
+  if (!sesion.tipo) {
+    return (
+      <div className="max-w-md mx-auto mt-12">
+        <Card>
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-3">📋</div>
+            <h1 className="text-2xl font-bold text-gray-800">Quiniela</h1>
+            <p className="text-sm text-gray-500 mt-1">Ingresa tu token para acceder</p>
+          </div>
+          <div className="space-y-4">
+            <input
+              type="text" value={tokenInput} onChange={e => setTokenInput(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Tu token"
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            />
+            <button onClick={handleLogin} className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+              Entrar
+            </button>
+            <p className="text-xs text-gray-400 text-center">
+              ¿No tienes token? <a href="/participantes" className="text-indigo-600 hover:underline">Regístrate aquí</a>
+            </p>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Quiniela</h1>
-        <button
-          onClick={() => setEditResultados(!editResultados)}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            editResultados ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          {editResultados ? '✏️ Editando Resultados' : '🔒 Ver Resultados'}
-        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Quiniela</h1>
+          <p className="text-sm text-gray-500">
+            {sesion.tipo === 'admin' ? '👑 Administrador — ingresa resultados' : `🎯 ${participantes.find(p => p.id === sesion.participanteId)?.nombre || 'Participante'} — elige 1 / X / 2`}
+          </p>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4 overflow-x-auto pb-2 flex-wrap">
         {fases.map(f => (
-          <button
-            key={f.id}
+          <button key={f.id}
             onClick={() => { setFaseActiva(f.id); setJornadaActiva(1) }}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${
-              faseActiva === f.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${faseActiva === f.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
           >
-            {f.nombre}
-            {f.id === 'grupos' && <span className="ml-1 text-xs opacity-75">(x{f.mult})</span>}
-            {f.id !== 'grupos' && <span className="ml-1 text-xs opacity-75">(x{f.mult})</span>}
+            {f.nombre} <span className="text-xs opacity-75">(x{f.mult})</span>
           </button>
         ))}
       </div>
@@ -74,12 +101,9 @@ export default function Quiniela() {
       {faseActiva === 'grupos' && (
         <div className="flex gap-2 mb-4">
           {jornadas.map(j => (
-            <button
-              key={j.id}
+            <button key={j.id}
               onClick={() => setJornadaActiva(j.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                jornadaActiva === j.id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${jornadaActiva === j.id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {j.nombre} ({j.dias})
             </button>
@@ -107,21 +131,20 @@ export default function Quiniela() {
                       <th className="pb-3 font-medium pr-4">#</th>
                       {faseActiva === 'grupos' && <th className="pb-3 font-medium pr-4">Fecha</th>}
                       <th className="pb-3 font-medium pr-4">Local</th>
-                      <th className="pb-3 font-medium pr-4 text-center">Marcador</th>
+                      <th className="pb-3 font-medium pr-4 text-center">Resultado</th>
                       <th className="pb-3 font-medium pr-4">Visita</th>
+                      {sesion.tipo === 'participante' && <th className="pb-3 font-medium text-center">Tu pronóstico</th>}
                       <th className="pb-3 font-medium text-center">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pjs.map((p, i) => (
-                      <FilaPartido
-                        key={p.id}
-                        partido={p}
-                        index={i}
-                        editResultados={editResultados}
-                        actualizarResultado={actualizarResultado}
-                        mostrarFecha={faseActiva === 'grupos'}
-                      />
+                      sesion.tipo === 'admin' ? (
+                        <FilaAdmin key={p.id} partido={p} index={i} actualizarResultado={actualizarResultado} mostrarFecha={faseActiva === 'grupos'} />
+                      ) : (
+                        <FilaParticipante key={p.id} partido={p} index={i} participanteId={sesion.participanteId}
+                          getPrediccion={getPrediccion} setPrediccion={setPrediccion} mostrarFecha={faseActiva === 'grupos'} />
+                      )
                     ))}
                   </tbody>
                 </table>
@@ -131,64 +154,52 @@ export default function Quiniela() {
         ))}
       </div>
 
-      {participantes.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Pronósticos por Participante</h2>
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {participantes.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setParticipanteActivo(p.id === participanteActivo ? null : p.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  participanteActivo === p.id ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {p.nombre}
-              </button>
-            ))}
-          </div>
-
-          {participanteActivo && (
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-gray-500 border-b">
-                      <th className="pb-3 font-medium pr-4">#</th>
-                      {faseActiva === 'grupos' && <th className="pb-3 font-medium pr-4">Fecha</th>}
-                      <th className="pb-3 font-medium pr-4">Local</th>
-                      <th className="pb-3 font-medium pr-4 text-center">Pronóstico</th>
-                      <th className="pb-3 font-medium pr-4">Visita</th>
-                      <th className="pb-3 font-medium text-center">Real</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {partidosJornada.map((p, i) => {
-                      const prono = getPronostico(participanteActivo, p.id)
+      {sesion.tipo === 'admin' && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Pronósticos de Participantes</h2>
+          <div className="space-y-4">
+            {participantes.filter(p => p.activo !== false).map(participante => {
+              const preds = predicciones[participante.id] || {}
+              const total = partidos.filter(p => p.actualizado).length
+              const hechos = Object.keys(preds).filter(k => partidos.find(p => p.id === k)?.actualizado).length
+              return (
+                <Card key={participante.id}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-800">{participante.nombre}</span>
+                    <span className="text-sm text-gray-500">{hechos}/{total} pronosticados</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {partidosJornada.filter(p => preds[p.id]).map(p => {
+                      const v = preds[p.id]
+                      const labels = { '1': '1', 'X': 'X', '2': '2' }
                       return (
-                        <FilaPronostico
-                          key={p.id}
-                          partido={p}
-                          index={i}
-                          pronostico={prono}
-                          participanteId={participanteActivo}
-                          guardarPronostico={guardarPronostico}
-                          mostrarFecha={faseActiva === 'grupos'}
-                        />
+                        <span key={p.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                          p.actualizado
+                            ? ((p.marcador_local > p.marcador_visita && v === '1') ||
+                               (p.marcador_visita > p.marcador_local && v === '2') ||
+                               (p.marcador_local === p.marcador_visita && v === 'X')
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700')
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <FlagIcon code={p.local} size={10} />
+                          {labels[v]}
+                          <FlagIcon code={p.visita} size={10} />
+                        </span>
                       )
                     })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-function FilaPartido({ partido: p, index, editResultados, actualizarResultado, mostrarFecha }) {
+function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
   const [local, setLocal] = useState(p.marcador_local ?? '')
   const [visita, setVisita] = useState(p.marcador_visita ?? '')
 
@@ -207,19 +218,13 @@ function FilaPartido({ partido: p, index, editResultados, actualizarResultado, m
         </span>
       </td>
       <td className="py-3 pr-4 text-center">
-        {editResultados ? (
-          <span className="inline-flex items-center gap-1">
-            <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
-              value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
-            <span className="text-gray-400">-</span>
-            <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
-              value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
-          </span>
-        ) : (
-          <span className={p.actualizado ? 'font-bold' : 'text-gray-400'}>
-            {p.actualizado ? `${p.marcador_local ?? '?'} - ${p.marcador_visita ?? '?'}` : '—'}
-          </span>
-        )}
+        <span className="inline-flex items-center gap-1">
+          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
+            value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
+          <span className="text-gray-400">-</span>
+          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
+            value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
+        </span>
       </td>
       <td className="py-3 pr-4 font-medium">
         <span className="inline-flex items-center gap-1.5">
@@ -237,44 +242,65 @@ function FilaPartido({ partido: p, index, editResultados, actualizarResultado, m
   )
 }
 
-function FilaPronostico({ partido: p, index, pronostico, participanteId, guardarPronostico, mostrarFecha }) {
-  const [local, setLocal] = useState(pronostico?.local ?? '')
-  const [visita, setVisita] = useState(pronostico?.visita ?? '')
+function FilaParticipante({ partido: p, index, participanteId, getPrediccion, setPrediccion, mostrarFecha }) {
+  const valor = getPrediccion(participanteId, p.id)
+  const opciones = [
+    { v: '1', label: '1', desc: 'Local' },
+    { v: 'X', label: 'X', desc: 'Empate' },
+    { v: '2', label: '2', desc: 'Visita' },
+  ]
 
-  const guardar = () => {
-    guardarPronostico(participanteId, p.id, local === '' ? null : Number(local), visita === '' ? null : Number(visita))
-  }
+  const realLabel = p.actualizado
+    ? (p.marcador_local > p.marcador_visita ? '1'
+      : p.marcador_visita > p.marcador_local ? '2' : 'X')
+    : null
+
+  const acierto = realLabel && valor === realLabel
 
   return (
-    <tr className="border-b last:border-0 hover:bg-gray-50">
-      <td className="py-2 pr-4 text-gray-500">{index + 1}</td>
-      {mostrarFecha && <td className="py-2 pr-4 text-xs text-gray-400">{p.fecha || '-'}</td>}
-      <td className="py-2 pr-4">
+    <tr className={`border-b last:border-0 hover:bg-gray-50 ${p.actualizado && valor ? (acierto ? 'bg-green-50' : 'bg-red-50') : ''}`}>
+      <td className="py-3 pr-4 text-gray-500">{index + 1}</td>
+      {mostrarFecha && <td className="py-3 pr-4 text-xs text-gray-400">{p.fecha || '-'}</td>}
+      <td className="py-3 pr-4 font-medium">
         <span className="inline-flex items-center gap-1.5">
           {p.local && <FlagIcon code={p.local} size={14} />}
           {nEq(p.local)?.nombre || p.local || '—'}
         </span>
       </td>
-      <td className="py-2 pr-4 text-center">
-        <span className="inline-flex items-center gap-1">
-          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
-            value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
-          <span className="text-gray-400">-</span>
-          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm"
-            value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
-        </span>
+      <td className="py-3 pr-4 text-center font-bold">
+        {p.actualizado
+          ? `${p.marcador_local} - ${p.marcador_visita}`
+          : <span className="text-gray-300">? - ?</span>
+        }
       </td>
-      <td className="py-2 pr-4">
+      <td className="py-3 pr-4 font-medium">
         <span className="inline-flex items-center gap-1.5">
           {p.visita && <FlagIcon code={p.visita} size={14} />}
           {nEq(p.visita)?.nombre || p.visita || '—'}
         </span>
       </td>
-      <td className="py-2 text-center">
-        {p.actualizado ? (
-          <span className="font-bold">{p.marcador_local} - {p.marcador_visita}</span>
-        ) : (
-          <span className="text-gray-400">—</span>
+      <td className="py-3 text-center">
+        {p.actualizado && !p.fecha?.startsWith('2026-06') ? null : (
+          <span className="inline-flex gap-1">
+            {opciones.map(o => (
+              <button key={o.v}
+                onClick={() => setPrediccion(participanteId, p.id, valor === o.v ? null : o.v)}
+                className={`w-8 h-8 rounded text-xs font-bold transition-colors ${
+                  valor === o.v
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                title={o.desc}
+              >
+                {o.label}
+              </button>
+            ))}
+          </span>
+        )}
+        {p.actualizado && (
+          <span className={`ml-2 text-sm ${acierto ? 'text-green-600' : 'text-red-400'}`}>
+            {acierto ? '✅' : '❌'}
+          </span>
         )}
       </td>
     </tr>
