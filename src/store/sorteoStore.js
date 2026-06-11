@@ -52,6 +52,44 @@ const useSorteoStore = create((set, get) => ({
     set({ asignaciones: {}, sorteado: false })
   },
 
+  rebalancear: async (participantes) => {
+    const activos = participantes.filter(p => p.activo !== false)
+    if (activos.length === 0) return
+
+    const current = get().asignaciones
+    const pids = Object.keys(current)
+    if (pids.length === 0) return
+
+    // Collect all teams into one pool, then randomize participant order
+    const todosEquipos = []
+    for (const pid of pids) {
+      todosEquipos.push(...current[pid])
+    }
+    const shuffledPids = [...pids].sort(() => Math.random() - 0.5)
+    const shuffledTeams = [...todosEquipos].sort(() => Math.random() - 0.5)
+
+    const nuevas = {}
+    let idx = 0
+    for (const eqId of shuffledTeams) {
+      const pid = Number(shuffledPids[idx % shuffledPids.length])
+      if (!nuevas[pid]) nuevas[pid] = []
+      nuevas[pid].push(eqId)
+      idx++
+    }
+
+    try {
+      await supabase.from('asignaciones').delete().neq('id', 0)
+      const rows = []
+      for (const pid of shuffledPids) {
+        for (const eqId of nuevas[pid]) {
+          rows.push({ participante_id: Number(pid), equipo_id: eqId })
+        }
+      }
+      await supabase.from('asignaciones').insert(rows)
+    } catch (e) { console.warn('Error guardando rebalanceo:', e) }
+    set({ asignaciones: nuevas, sorteado: true })
+  },
+
   getEquipos: (participanteId) => get().asignaciones[participanteId] || [],
 }))
 

@@ -15,6 +15,13 @@ export default function Sorteo() {
   const sorteado = useSorteoStore(s => s.sorteado)
   const ejecutar = useSorteoStore(s => s.ejecutar)
   const resetear = useSorteoStore(s => s.resetear)
+  const rebalancear = useSorteoStore(s => s.rebalancear)
+
+  const pids = Object.keys(asignaciones)
+  const conteos = pids.map(pid => ({ pid: Number(pid), count: asignaciones[pid].length }))
+  const minCount = conteos.length > 0 ? Math.min(...conteos.map(c => c.count)) : 0
+  const maxCount = conteos.length > 0 ? Math.max(...conteos.map(c => c.count)) : 0
+  const necesitaRebalanceo = maxCount - minCount > 1
 
   if (sesion.tipo !== 'admin') {
     return (
@@ -32,9 +39,16 @@ export default function Sorteo() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-display font-black text-cesped tracking-tight">Sorteo de Equipos</h1>
         {sorteado && (
-          <Button variant="danger" size="sm" onClick={resetear}>
-            Resetear Sorteo
-          </Button>
+          <div className="flex gap-2">
+            {necesitaRebalanceo && (
+              <Button variant="primary" size="sm" onClick={() => rebalancear(activos)}>
+                Rebalancear ({maxCount - minCount} dif)
+              </Button>
+            )}
+            <Button variant="danger" size="sm" onClick={resetear}>
+              Resetear Sorteo
+            </Button>
+          </div>
         )}
       </div>
 
