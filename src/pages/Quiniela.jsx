@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { DocumentTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline'
 import useParticipantesStore from '../store/participantesStore'
 import useQuinielaStore from '../store/quinielaStore'
 import useSorteoStore from '../store/sorteoStore'
@@ -7,7 +8,10 @@ import useSessionStore from '../store/sessionStore'
 import { fases, jornadas } from '../data/partidos'
 import { getEquipo as getEquipoData } from '../data/grupos'
 import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
 import FlagIcon from '../components/ui/FlagIcon'
+import Avatar from '../components/ui/Avatar'
 
 const nEq = (id) => getEquipoData(id)
 
@@ -66,7 +70,7 @@ export default function Quiniela() {
     if (t === 'admin2026') { loginAdmin(); setTokenInput(''); setErrorLogin(''); return }
     const p = getByToken(t)
     if (p) { loginParticipante(p.id, t); setTokenInput(''); setErrorLogin(''); return }
-    setErrorLogin('Token inválido')
+    setErrorLogin('Token invalido')
   }
 
   const sinSorteo = sesion.tipo === 'participante' && eqParticipante.length === 0 && !sorteado
@@ -74,22 +78,21 @@ export default function Quiniela() {
   if (!sesion.tipo) {
     return (
       <div className="max-w-md mx-auto mt-12">
-        <Card>
+        <Card variant="light">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">📋</div>
-            <h1 className="text-2xl font-bold text-gray-800">Quiniela</h1>
-            <p className="text-sm text-gray-500 mt-1">Ingresa tu token para acceder</p>
+            <DocumentTextIcon className="w-12 h-12 mx-auto mb-3 text-cesped/20" />
+            <h1 className="text-2xl font-display font-black text-cesped">Quiniela</h1>
+            <p className="text-sm text-cesped/60 mt-1">Ingresa tu token para acceder</p>
           </div>
           <div className="space-y-4">
-            {errorLogin && <p className="text-red-500 text-xs text-center">{errorLogin}</p>}
-            <input type="text" value={tokenInput} onChange={e => { setTokenInput(e.target.value); setErrorLogin('') }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Tu token" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-            <button onClick={handleLogin} className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+            {errorLogin && <p className="text-tinto text-xs text-center">{errorLogin}</p>}
+            <Input type="text" value={tokenInput} onChange={e => { setTokenInput(e.target.value); setErrorLogin('') }}
+              placeholder="Tu token" className="text-center text-lg" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+            <Button variant="primary" size="lg" className="w-full" onClick={handleLogin}>
               Entrar
-            </button>
-            <p className="text-xs text-gray-400 text-center">
-              ¿No tienes token? <Link to="/participantes" className="text-indigo-600 hover:underline">Regístrate aquí</Link>
+            </Button>
+            <p className="text-xs text-cesped/40 text-center">
+              No tienes token? <Link to="/participantes" className="text-ocre hover:underline font-semibold">Registrate aqui</Link>
             </p>
           </div>
         </Card>
@@ -98,25 +101,27 @@ export default function Quiniela() {
   }
 
   if (!loaded) {
-    return <Card><div className="text-center py-8 text-gray-400"><p>Cargando datos...</p></div></Card>
+    return <Card variant="light"><div className="text-center py-8 text-cesped/30"><p>Cargando datos...</p></div></Card>
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Quiniela</h1>
-          <p className="text-sm text-gray-500">
-            {sesion.tipo === 'admin' ? '👑 Administrador — ingresa resultados' : `🎯 ${participantes.find(p => p.id === sesion.participanteId)?.nombre || 'Participante'} — ${faseActiva === 'grupos' ? 'toca el escudo o "Empate"' : 'toca el escudo del que avanza'}`}
+          <h1 className="text-3xl font-display font-black text-cesped tracking-tight">Quiniela</h1>
+          <p className="text-sm text-cesped/60">
+            {sesion.tipo === 'admin'
+              ? 'Administrador — ingresa resultados'
+              : `${participantes.find(p => p.id === sesion.participanteId)?.nombre || 'Participante'} — ${faseActiva === 'grupos' ? 'toca el escudo o "Empate"' : 'toca el escudo del que avanza'}`}
           </p>
         </div>
       </div>
 
       {sinSorteo && (
-        <Card className="mb-6 border-yellow-300 bg-yellow-50">
+        <Card className="mb-6 border border-tinto/20 bg-tinto/5" variant="crema">
           <div className="text-center py-4">
-            <p className="text-yellow-800 font-medium">⏳ El administrador aún no realiza el sorteo de equipos</p>
-            <p className="text-yellow-600 text-sm">Una vez sorteado, verás aquí solo los partidos de tus equipos</p>
+            <p className="text-tinto font-semibold">El administrador aun no realiza el sorteo de equipos</p>
+            <p className="text-tinto/60 text-sm">Una vez sorteado, veras aqui solo los partidos de tus equipos</p>
           </div>
         </Card>
       )}
@@ -125,9 +130,9 @@ export default function Quiniela() {
         {fases.map(f => (
           <button key={f.id}
             onClick={() => { setFaseActiva(f.id); setJornadaActiva(1) }}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${faseActiva === f.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-bold tracking-wide transition-colors ${faseActiva === f.id ? 'bg-ocre text-white' : 'bg-cesped/5 text-cesped/60 hover:bg-cesped/10 hover:text-cesped'}`}
           >
-            {f.nombre} <span className="text-xs opacity-75">(x{f.mult})</span>
+            {f.nombre} <span className="text-xs opacity-60 font-mono">(x{f.mult})</span>
           </button>
         ))}
       </div>
@@ -137,9 +142,9 @@ export default function Quiniela() {
           {jornadas.map(j => (
             <button key={j.id}
               onClick={() => setJornadaActiva(j.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${jornadaActiva === j.id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-colors ${jornadaActiva === j.id ? 'bg-cesped text-crema' : 'bg-cesped/5 text-cesped/60 hover:bg-cesped/10'}`}
             >
-              {j.nombre} ({j.dias})
+              {j.nombre} <span className="font-mono">({j.dias})</span>
             </button>
           ))}
         </div>
@@ -149,26 +154,26 @@ export default function Quiniela() {
         {Object.entries(grouped).map(([grupo, pjs]) => (
           <div key={grupo}>
             {faseActiva === 'grupos' && (
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <h3 className="text-xs font-bold tracking-[0.15em] text-cesped/40 uppercase mb-2 flex items-center gap-2">
                 Grupo {grupo}
-                <span className="text-xs font-normal text-gray-400">
+                <span className="text-xs font-normal text-cesped/30 font-mono">
                   {pjs[0]?.fecha ? formatDate(pjs[0].fecha) : ''}
                   {pjs[1]?.fecha && pjs[0]?.fecha !== pjs[1]?.fecha ? ` - ${formatDate(pjs[1].fecha)}` : ''}
                 </span>
               </h3>
             )}
-            <Card>
+            <Card variant="light">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-gray-500 border-b">
-                      <th className="pb-3 font-medium pr-4">#</th>
-                      {faseActiva === 'grupos' && <th className="pb-3 font-medium pr-4">Fecha</th>}
-                      <th className="pb-3 font-medium pr-4">Local</th>
-                      <th className="pb-3 font-medium pr-4 text-center">Resultado</th>
-                      <th className="pb-3 font-medium pr-4">Visita</th>
-                      {sesion.tipo === 'participante' && <th className="pb-3 font-medium text-center">Tu pronóstico</th>}
-                      <th className="pb-3 font-medium text-center">Estado</th>
+                    <tr className="text-left text-cesped/50 border-b border-cesped/10">
+                      <th className="pb-3 font-semibold pr-4">#</th>
+                      {faseActiva === 'grupos' && <th className="pb-3 font-semibold pr-4">Fecha</th>}
+                      <th className="pb-3 font-semibold pr-4">Local</th>
+                      <th className="pb-3 font-semibold pr-4 text-center">Resultado</th>
+                      <th className="pb-3 font-semibold pr-4">Visita</th>
+                      {sesion.tipo === 'participante' && <th className="pb-3 font-semibold text-center">Tu pronostico</th>}
+                      <th className="pb-3 font-semibold text-center">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -189,8 +194,8 @@ export default function Quiniela() {
       </div>
 
       {sesion.tipo === 'admin' && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Pronósticos de Participantes</h2>
+        <div className="mt-10">
+          <h2 className="text-xl font-display font-black text-cesped mb-4">Pronosticos de Participantes</h2>
           <div className="space-y-4">
             {participantes.filter(p => p.activo !== false).map(participante => {
               const preds = predicciones[participante.id] || {}
@@ -199,28 +204,31 @@ export default function Quiniela() {
               const total = misPartidos.filter(p => p.actualizado).length
               const hechos = Object.keys(preds).filter(k => misPartidos.find(p => p.id === k)?.actualizado).length
               return (
-                <Card key={participante.id}>
+                <Card key={participante.id} variant="light">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-gray-800">{participante.nombre}</span>
-                    <span className="text-sm text-gray-500">{hechos}/{total} pronosticados</span>
+                    <div className="flex items-center gap-2">
+                      <Avatar name={participante.nombre} size="sm" />
+                      <span className="font-bold text-gray-800">{participante.nombre}</span>
+                    </div>
+                    <span className="text-sm text-cesped/50 font-mono">{hechos}/{total} pronosticados</span>
                   </div>
                   {eqt.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {eqt.map(eqId => <FlagIcon key={eqId} code={eqId} size={12} />)}
-                      <span className="text-xs text-gray-400 ml-1">{eqt.length} equipos</span>
+                      <span className="text-xs text-cesped/40 ml-1">{eqt.length} equipos</span>
                     </div>
                   )}
                   <div className="flex flex-wrap gap-1">
                     {misPartidos.filter(p => p.fase === faseActiva && (faseActiva !== 'grupos' || p.jornada === jornadaActiva)).filter(p => preds[p.id]).map(p => {
                       const v = preds[p.id]
                       return (
-                        <span key={p.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                        <span key={p.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
                           p.actualizado
                             ? ((p.marcador_local > p.marcador_visita && v === '1') || (p.marcador_visita > p.marcador_local && v === '2') || (p.marcador_local === p.marcador_visita && v === 'X')
-                              ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')
-                            : 'bg-gray-100 text-gray-600'
+                              ? 'bg-pasto/10 text-pasto' : 'bg-tinto/10 text-tinto')
+                            : 'bg-cesped/5 text-cesped/60'
                         }`}>
-                          {v === '1' ? <FlagIcon code={p.local} size={12} /> : v === '2' ? <FlagIcon code={p.visita} size={12} /> : <span>✕</span>}
+                          {v === '1' ? <FlagIcon code={p.local} size={12} /> : v === '2' ? <FlagIcon code={p.visita} size={12} /> : <span className="font-mono">X</span>}
                         </span>
                       )
                     })}
@@ -242,19 +250,19 @@ function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
   const guardar = () => actualizarResultado(p.id, local === '' ? null : Number(local), visita === '' ? null : Number(visita))
 
   return (
-    <tr className="border-b last:border-0 hover:bg-gray-50">
-      <td className="py-3 pr-4 text-gray-500">{index + 1}</td>
-      {mostrarFecha && <td className="py-3 pr-4 text-xs text-gray-400">{p.fecha || '-'}</td>}
-      <td className="py-3 pr-4 font-medium"><span className="inline-flex items-center gap-1.5">{p.local && <FlagIcon code={p.local} size={14} />}{nEq(p.local)?.nombre || p.local || '—'}</span></td>
+    <tr className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
+      <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{index + 1}</td>
+      {mostrarFecha && <td className="py-3 pr-4 text-xs text-cesped/50 font-mono">{p.fecha || '—'}</td>}
+      <td className="py-3 pr-4 font-semibold text-gray-800"><span className="inline-flex items-center gap-1.5">{p.local && <FlagIcon code={p.local} size={14} />}{nEq(p.local)?.nombre || p.local || '—'}</span></td>
       <td className="py-3 pr-4 text-center">
         <span className="inline-flex items-center gap-1">
-          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm" value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
-          <span className="text-gray-400">-</span>
-          <input type="number" className="w-12 px-2 py-1 border rounded text-center text-sm" value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
+          <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
+          <span className="text-cesped/30 font-bold">-</span>
+          <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
         </span>
       </td>
-      <td className="py-3 pr-4 font-medium"><span className="inline-flex items-center gap-1.5">{p.visita && <FlagIcon code={p.visita} size={14} />}{nEq(p.visita)?.nombre || p.visita || '—'}</span></td>
-      <td className="py-3 text-center">{p.actualizado ? <span className="text-green-600 text-xs font-medium">✅ Jugado</span> : <span className="text-gray-400 text-xs">⏳ {p.fecha || 'Pendiente'}</span>}</td>
+      <td className="py-3 pr-4 font-semibold text-gray-800"><span className="inline-flex items-center gap-1.5">{p.visita && <FlagIcon code={p.visita} size={14} />}{nEq(p.visita)?.nombre || p.visita || '—'}</span></td>
+      <td className="py-3 text-center">{p.actualizado ? <span className="inline-flex items-center gap-1 text-xs text-pasto font-semibold"><CheckCircleIcon className="w-3.5 h-3.5" /> Jugado</span> : <span className="inline-flex items-center gap-1 text-xs text-cesped/40 font-semibold"><ClockIcon className="w-3.5 h-3.5" /> {p.fecha || 'Pendiente'}</span>}</td>
     </tr>
   )
 }
@@ -272,20 +280,20 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
   const eqVisita = p.visita ? nEq(p.visita) : null
 
   return (
-    <tr className={`border-b last:border-0 hover:bg-gray-50 ${p.actualizado && valor ? (acierto ? 'bg-green-50' : 'bg-red-50') : ''}`}>
-      <td className="py-3 pr-4 text-gray-500">{index + 1}</td>
-      {mostrarFecha && <td className="py-3 pr-4 text-xs text-gray-400">{p.fecha || '-'}</td>}
+    <tr className={`border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02] ${p.actualizado && valor ? (acierto ? 'bg-pasto/[0.03]' : 'bg-tinto/[0.03]') : ''}`}>
+      <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{index + 1}</td>
+      {mostrarFecha && <td className="py-3 pr-4 text-xs text-cesped/50 font-mono">{p.fecha || '—'}</td>}
       <td className="py-3 pr-4">
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
           {p.local && <FlagIcon code={p.local} size={14} />}
           {eqLocal?.nombre || p.local || '—'}
         </span>
       </td>
-      <td className="py-3 pr-4 text-center font-bold">
-        {p.actualizado ? `${p.marcador_local} - ${p.marcador_visita}` : <span className="text-gray-300">? - ?</span>}
+      <td className="py-3 pr-4 text-center font-display font-bold text-cesped">
+        {p.actualizado ? `${p.marcador_local} - ${p.marcador_visita}` : <span className="text-cesped/20">? - ?</span>}
       </td>
       <td className="py-3 pr-4">
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
           {p.visita && <FlagIcon code={p.visita} size={14} />}
           {eqVisita?.nombre || p.visita || '—'}
         </span>
@@ -293,39 +301,41 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
       <td className="py-3 text-center">
         {p.local && p.visita ? (
           esGrupos ? (
-            <div className="inline-flex border border-gray-300 rounded-lg overflow-hidden text-xs">
+            <div className="inline-flex border border-cesped/20 rounded-lg overflow-hidden text-xs">
               <button onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-gray-300 transition-colors ${valor === '1' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
                 <FlagIcon code={p.local} size={12} /> {eqLocal?.nombre || 'Local'}
               </button>
               <button onClick={() => setPrediccion(participanteId, p.id, valor === 'X' ? null : 'X')}
-                className={`px-2.5 py-1.5 border-r border-gray-300 font-semibold transition-colors ${valor === 'X' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
-                Empate
+                className={`px-3 py-1.5 border-r border-cesped/10 transition-colors font-bold tracking-wider ${valor === 'X' ? 'bg-ocre text-white' : 'text-cesped/50 hover:bg-cesped/5'}`}>
+                X
               </button>
               <button onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors ${valor === '2' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
                 <FlagIcon code={p.visita} size={12} /> {eqVisita?.nombre || 'Visitante'}
               </button>
             </div>
           ) : (
-            <div className="inline-flex border border-gray-300 rounded-lg overflow-hidden text-xs">
+            <div className="inline-flex border border-cesped/20 rounded-lg overflow-hidden text-xs">
               <button onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-gray-300 transition-colors ${valor === '1' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
                 <FlagIcon code={p.local} size={12} /> {eqLocal?.nombre || 'Local'}
               </button>
               <button onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors ${valor === '2' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
                 <FlagIcon code={p.visita} size={12} /> {eqVisita?.nombre || 'Visitante'}
               </button>
             </div>
           )
         ) : (
-          <span className="text-gray-400 text-xs">—</span>
+          <span className="text-cesped/30 font-mono text-xs">—</span>
         )}
-      </td>
-      <td className="py-3 text-center">
-        {p.actualizado ? <span className="text-green-600 text-xs font-medium">✅ Jugado</span> : <span className="text-gray-400 text-xs">⏳ {p.fecha || 'Pendiente'}</span>}
-        {p.actualizado && valor && <span className={`ml-1 text-sm ${acierto ? 'text-green-600' : 'text-red-400'}`}>{acierto ? '✅' : '❌'}</span>}
+        {p.actualizado && (
+          <span className={`ml-2 inline-flex items-center ${acierto ? 'text-pasto' : 'text-tinto/50'}`}>
+            {acierto ? <CheckCircleIcon className="w-3.5 h-3.5" /> : <XCircleIcon className="w-3.5 h-3.5" />}
+          </span>
+        )}
+
       </td>
     </tr>
   )

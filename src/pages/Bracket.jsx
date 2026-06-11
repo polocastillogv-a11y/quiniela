@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import { TrophyIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline'
 import useQuinielaStore from '../store/quinielaStore'
-import { fases } from '../data/partidos'
 import { getEquipo } from '../data/grupos'
 import Card from '../components/ui/Card'
 import FlagIcon from '../components/ui/FlagIcon'
@@ -24,17 +24,17 @@ export default function Bracket() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">🏆 Bracket Eliminatorio</h1>
+      <h1 className="text-3xl font-display font-black text-cesped tracking-tight mb-8">Bracket Eliminatorio</h1>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {fasesBracket.map((f, i) => (
           <button
             key={f}
             onClick={() => setFaseIdx(i)}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-bold tracking-wide transition-colors ${
               faseIdx === i
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-ocre text-white'
+                : 'bg-cesped/5 text-cesped/60 hover:bg-cesped/10 hover:text-cesped'
             }`}
           >
             {nombresFase[f]}
@@ -44,27 +44,27 @@ export default function Bracket() {
 
       <div className="grid gap-4">
         {partidosFase.map((p, i) => (
-          <Card key={p.id} className="border-l-4 border-l-indigo-400">
+          <Card key={p.id} variant="light" className="border-l-4 border-l-ocre">
             <div className="flex items-center justify-between">
               <div className="flex-1 text-right">
-                <span className="inline-flex items-center gap-1.5 justify-end text-lg font-semibold">
+                <span className="inline-flex items-center gap-1.5 justify-end text-lg font-bold text-gray-800">
                   {p.local && <FlagIcon code={p.local} size={18} />}
                   {getEquipo(p.local)?.nombre || p.local || '—'}
                 </span>
               </div>
               <div className="mx-6 text-center">
-                <div className="text-2xl font-bold text-indigo-600">
+                <div className="text-2xl font-display font-black text-cesped">
                   {p.actualizado
                     ? `${p.marcador_local ?? '?'} - ${p.marcador_visita ?? '?'}`
                     : '? - ?'
                   }
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-cesped/40 mt-1 font-mono">
                   {p.label || `Partido ${i + 1}`}
                 </div>
               </div>
               <div className="flex-1 text-left">
-                <span className="inline-flex items-center gap-1.5 text-lg font-semibold">
+                <span className="inline-flex items-center gap-1.5 text-lg font-bold text-gray-800">
                   {p.visita && <FlagIcon code={p.visita} size={18} />}
                   {getEquipo(p.visita)?.nombre || p.visita || '—'}
                 </span>
@@ -72,15 +72,15 @@ export default function Bracket() {
             </div>
             <div className="text-center mt-2">
               {p.actualizado
-                ? <span className="text-xs text-green-500">✅ Jugado</span>
-                : <span className="text-xs text-yellow-500">⏳ {p.fecha || 'Pendiente'}</span>
+                ? <span className="inline-flex items-center gap-1 text-xs text-pasto font-semibold"><CheckCircleIcon className="w-3.5 h-3.5" /> Jugado</span>
+                : <span className="inline-flex items-center gap-1 text-xs text-cesped/40 font-semibold"><ClockIcon className="w-3.5 h-3.5" /> {p.fecha || 'Pendiente'}</span>
               }
             </div>
           </Card>
         ))}
         {partidosFase.length === 0 && (
-          <Card>
-            <div className="text-center py-8 text-gray-400">
+          <Card variant="light">
+            <div className="text-center py-8 text-cesped/30">
               <p>No hay partidos en esta fase</p>
             </div>
           </Card>

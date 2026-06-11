@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { KeyIcon, UserPlusIcon, ShieldCheckIcon, CheckCircleIcon, XCircleIcon, EyeIcon, EyeSlashIcon, TrashIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 import useParticipantesStore from '../store/participantesStore'
 import useSessionStore from '../store/sessionStore'
 import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
 
 export default function Participantes() {
   const participantes = useParticipantesStore(s => s.participantes)
@@ -25,7 +28,7 @@ export default function Participantes() {
     if (!nombre.trim() || !token.trim()) { setError('Nombre y token son obligatorios'); return }
     const result = await registrar(nombre.trim(), token.trim(), Number(cuota) || 0)
     if (!result.ok) {
-      if (result.reason === 'token_exists') { setError('Ese token ya está registrado'); return }
+      if (result.reason === 'token_exists') { setError('Ese token ya esta registrado'); return }
       setError('Error al registrar: ' + (result.msg || 'intenta de nuevo'))
       return
     }
@@ -38,7 +41,7 @@ export default function Participantes() {
     if (t === 'admin2026') { loginAdmin(); setTokenInput(''); return }
     const p = getByToken(t)
     if (p) { loginParticipante(p.id, t); setTokenInput(''); return }
-    setError('Token inválido')
+    setError('Token invalido')
   }
 
   const generadorToken = () => {
@@ -47,84 +50,96 @@ export default function Participantes() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Participantes</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-display font-black text-cesped tracking-tight">Participantes</h1>
         {sesion.tipo && (
-          <button onClick={logout} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
-            Cerrar sesión ({sesion.tipo === 'admin' ? 'Admin' : participantes.find(p => p.id === sesion.participanteId)?.nombre})
-          </button>
+          <Button variant="ghost" size="sm" onClick={logout}>
+            <ArrowRightOnRectangleIcon className="w-4 h-4" />
+            {sesion.tipo === 'admin' ? 'Admin' : participantes.find(p => p.id === sesion.participanteId)?.nombre} — Salir
+          </Button>
         )}
       </div>
 
       {!loaded ? (
-        <Card><div className="text-center py-8 text-gray-400"><p>Cargando...</p></div></Card>
+        <Card><div className="text-center py-8 text-cesped/30"><p>Cargando...</p></div></Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <Card title="🔑 Iniciar Sesión">
-              <p className="text-sm text-gray-500 mb-3">Ingresa tu token secreto para acceder.</p>
-              {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card title="Iniciar Sesion" variant="light">
+              <p className="text-sm text-cesped/60 mb-4">Ingresa tu token secreto para acceder.</p>
+              {error && <p className="text-tinto text-xs mb-2">{error}</p>}
               <div className="flex gap-2">
-                <input type="text" value={tokenInput} onChange={e => { setTokenInput(e.target.value); setError('') }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                <Input type="text" value={tokenInput} onChange={e => { setTokenInput(e.target.value); setError('') }}
                   placeholder="Tu token" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-                <button onClick={handleLogin} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">
+                <Button variant="primary" size="md" onClick={handleLogin}>
+                  <KeyIcon className="w-4 h-4" />
                   Entrar
-                </button>
+                </Button>
               </div>
             </Card>
 
-            <Card title="📝 Registrarse">
-              <p className="text-sm text-gray-500 mb-3">Crea tu cuenta con un token secreto que solo tú conozcas.</p>
+            <Card title="Registrarse" variant="light">
+              <p className="text-sm text-cesped/60 mb-4">Crea tu cuenta con un token secreto que solo tu conozcas.</p>
               <div className="space-y-3">
-                <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tu nombre" />
+                <Input type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre" />
                 <div className="flex gap-2">
-                  <input type="text" value={token} onChange={e => setToken(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Token secreto" />
-                  <button onClick={generadorToken} className="px-3 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 text-xs whitespace-nowrap">Generar</button>
+                  <Input type="text" value={token} onChange={e => setToken(e.target.value)} placeholder="Token secreto" />
+                  <Button variant="secondary" size="sm" onClick={generadorToken}>Generar</Button>
                 </div>
-                <input type="number" value={cuota} onChange={e => setCuota(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Cuota ($) opcional" min="0" />
-                {error && <p className="text-red-500 text-xs">{error}</p>}
-                <button onClick={handleRegister} className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Registrarse</button>
+                <Input type="number" value={cuota} onChange={e => setCuota(e.target.value)} placeholder="Cuota ($) opcional" min="0" />
+                {error && <p className="text-tinto text-xs">{error}</p>}
+                <Button variant="primary" size="md" className="w-full" onClick={handleRegister}>
+                  <UserPlusIcon className="w-4 h-4" />
+                  Registrarse
+                </Button>
               </div>
             </Card>
           </div>
 
           {sesion.tipo === 'admin' && (
-            <Card title="👑 Admin — Participantes registrados">
+            <Card title="Admin — Participantes registrados" variant="light">
               {participantes.length === 0 ? (
-                <p className="text-gray-400 text-center py-6">No hay participantes registrados</p>
+                <p className="text-cesped/30 text-center py-6">No hay participantes registrados</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-gray-500 border-b">
-                        <th className="pb-3 font-medium pr-4">#</th>
-                        <th className="pb-3 font-medium pr-4">Nombre</th>
-                        <th className="pb-3 font-medium pr-4">Cuota</th>
-                        <th className="pb-3 font-medium pr-4">Pagó</th>
-                        <th className="pb-3 font-medium pr-4">Método</th>
-                        <th className="pb-3 font-medium pr-4">Token</th>
-                        <th className="pb-3 font-medium">Acciones</th>
+                      <tr className="text-left text-cesped/50 border-b border-cesped/10">
+                        <th className="pb-3 font-semibold pr-4">#</th>
+                        <th className="pb-3 font-semibold pr-4">Nombre</th>
+                        <th className="pb-3 font-semibold pr-4">Cuota</th>
+                        <th className="pb-3 font-semibold pr-4">Pago</th>
+                        <th className="pb-3 font-semibold pr-4">Metodo</th>
+                        <th className="pb-3 font-semibold pr-4">Token</th>
+                        <th className="pb-3 font-semibold">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {participantes.map((p, i) => (
-                        <tr key={p.id} className="border-b last:border-0 hover:bg-gray-50">
-                          <td className="py-3 pr-4 text-gray-500">{i + 1}</td>
-                          <td className="py-3 pr-4 font-medium">{p.nombre}</td>
-                          <td className="py-3 pr-4">${(p.cuota || 0).toLocaleString()}</td>
-                          <td className="py-3 pr-4">{p.pagado ? <span className="text-green-600 text-xs font-medium">✅ Pagado</span> : <span className="text-red-500 text-xs">❌ Pendiente</span>}</td>
-                          <td className="py-3 pr-4 text-gray-500">{p.metodo_pago || '-'}</td>
+                        <tr key={p.id} className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
+                          <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{i + 1}</td>
+                          <td className="py-3 pr-4 font-semibold text-gray-800">{p.nombre}</td>
+                          <td className="py-3 pr-4 font-mono text-sm">${(p.cuota || 0).toLocaleString()}</td>
+                          <td className="py-3 pr-4">
+                            {p.pagado
+                              ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-pasto"><CheckCircleIcon className="w-3.5 h-3.5" /> Pagado</span>
+                              : <span className="inline-flex items-center gap-1 text-xs font-semibold text-tinto"><XCircleIcon className="w-3.5 h-3.5" /> Pendiente</span>}
+                          </td>
+                          <td className="py-3 pr-4 text-cesped/50 text-xs">{p.metodo_pago || '—'}</td>
                           <td className="py-3 pr-4">
                             <button onClick={() => setTokenRevelado(tokenRevelado === p.id ? null : p.id)}
-                              className="text-xs text-gray-400 hover:text-gray-600 font-mono">
+                              className="inline-flex items-center gap-1 text-xs font-mono text-cesped/40 hover:text-cesped transition-colors">
                               {tokenRevelado === p.id ? p.token : '••••••••'}
+                              {tokenRevelado === p.id ? <EyeSlashIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
                             </button>
                           </td>
-                          <td className="py-3"><button onClick={() => eliminar(p.id)} className="text-red-600 hover:underline text-sm">Eliminar</button></td>
+                          <td className="py-3">
+                            <button onClick={() => eliminar(p.id)}
+                              className="inline-flex items-center gap-1 text-xs text-tinto hover:text-tinto/70 transition-colors">
+                              <TrashIcon className="w-3.5 h-3.5" />
+                              Eliminar
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
