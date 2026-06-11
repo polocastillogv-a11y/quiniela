@@ -53,34 +53,35 @@ const useSorteoStore = create((set, get) => ({
   },
 
   rebalancear: async (participantes) => {
-    const activos = participantes.filter(p => p.activo !== false)
-    if (activos.length === 0) return
-
     const current = get().asignaciones
     const pids = Object.keys(current)
-    if (pids.length === 0) return
+    if (pids.length < 2) return
 
-    // Collect all teams into one pool, then randomize participant order
-    const todosEquipos = []
-    for (const pid of pids) {
-      todosEquipos.push(...current[pid])
-    }
-    const shuffledPids = [...pids].sort(() => Math.random() - 0.5)
-    const shuffledTeams = [...todosEquipos].sort(() => Math.random() - 0.5)
+    const counts = {}
+    for (const pid of pids) counts[pid] = current[pid].length
+    const values = Object.values(counts)
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    if (max === min) return
+
+    const rich = pids.filter(pid => counts[pid] > min).sort(() => Math.random() - 0.5)
+    const poor = pids.filter(pid => counts[pid] < max).sort(() => Math.random() - 0.5)
+    const movidas = Math.min(rich.length, poor.length)
 
     const nuevas = {}
-    let idx = 0
-    for (const eqId of shuffledTeams) {
-      const pid = Number(shuffledPids[idx % shuffledPids.length])
-      if (!nuevas[pid]) nuevas[pid] = []
-      nuevas[pid].push(eqId)
-      idx++
+    for (const pid of pids) nuevas[pid] = [...current[pid]]
+
+    for (let i = 0; i < movidas; i++) {
+      const rPid = rich[i]
+      const pPid = poor[i]
+      const teamId = nuevas[rPid].pop()
+      nuevas[pPid].push(teamId)
     }
 
     try {
       await supabase.from('asignaciones').delete().neq('id', 0)
       const rows = []
-      for (const pid of shuffledPids) {
+      for (const pid of pids) {
         for (const eqId of nuevas[pid]) {
           rows.push({ participante_id: Number(pid), equipo_id: eqId })
         }
