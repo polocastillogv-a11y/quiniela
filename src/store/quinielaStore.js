@@ -14,18 +14,22 @@ const useQuinielaStore = create((set, get) => ({
         supabase.from('predicciones').select('*'),
       ])
 
-      const partidos = datosPartidos.map(p => {
-        const r = resR.data?.find(r => r.partido_id === p.id)
-        return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
-      })
-
-      const predicciones = {}
-      for (const pr of resP.data || []) {
-        if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
-        predicciones[pr.participante_id][pr.partido_id] = pr.valor
+      if (!resR.error) {
+        const partidos = datosPartidos.map(p => {
+          const r = resR.data?.find(r => r.partido_id === p.id)
+          return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
+        })
+        set({ partidos })
       }
 
-      set({ partidos, predicciones })
+      if (!resP.error && resP.data) {
+        const predicciones = {}
+        for (const pr of resP.data) {
+          if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
+          predicciones[pr.participante_id][pr.partido_id] = pr.valor
+        }
+        set({ predicciones })
+      }
     } catch (e) {
       console.warn('Error cargando quiniela:', e)
     }
@@ -58,7 +62,11 @@ const useQuinielaStore = create((set, get) => ({
       } catch (e) { console.warn('Error eliminando predicción:', e) }
       set(state => {
         const preds = { ...state.predicciones }
-        if (preds[participanteId]) delete preds[participanteId][partidoId]
+        if (preds[participanteId]) {
+          const inner = { ...preds[participanteId] }
+          delete inner[partidoId]
+          preds[participanteId] = inner
+        }
         return { predicciones: preds }
       })
     } else {
@@ -70,8 +78,9 @@ const useQuinielaStore = create((set, get) => ({
       } catch (e) { console.warn('Error guardando predicción:', e) }
       set(state => {
         const preds = { ...state.predicciones }
-        if (!preds[participanteId]) preds[participanteId] = {}
-        preds[participanteId][partidoId] = valor
+        const inner = { ...(preds[participanteId] || {}) }
+        inner[partidoId] = valor
+        preds[participanteId] = inner
         return { predicciones: preds }
       })
     }

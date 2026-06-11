@@ -290,7 +290,7 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
           {eqVisita?.nombre || p.visita || '—'}
         </span>
       </td>
-      <td className="py-3 text-center" colSpan={p.actualizado ? 1 : 1}>
+      <td className="py-3 text-center">
         {p.local && p.visita ? (
           esGrupos ? (
             <div className="inline-flex border border-gray-300 rounded-lg overflow-hidden text-xs">
@@ -322,7 +322,10 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
         ) : (
           <span className="text-gray-400 text-xs">—</span>
         )}
-        {p.actualizado && <span className={`ml-2 text-sm ${acierto ? 'text-green-600' : 'text-red-400'}`}>{acierto ? '✅' : '❌'}</span>}
+      </td>
+      <td className="py-3 text-center">
+        {p.actualizado ? <span className="text-green-600 text-xs font-medium">✅ Jugado</span> : <span className="text-gray-400 text-xs">⏳ {p.fecha || 'Pendiente'}</span>}
+        {p.actualizado && valor && <span className={`ml-1 text-sm ${acierto ? 'text-green-600' : 'text-red-400'}`}>{acierto ? '✅' : '❌'}</span>}
       </td>
     </tr>
   )
