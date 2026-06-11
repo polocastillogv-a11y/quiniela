@@ -276,6 +276,7 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
     : null
 
   const acierto = realLabel && valor === realLabel
+  const bloqueado = valor !== null
   const eqLocal = p.local ? nEq(p.local) : null
   const eqVisita = p.visita ? nEq(p.visita) : null
 
@@ -302,27 +303,27 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
         {p.local && p.visita ? (
           esGrupos ? (
             <div className="inline-flex border border-cesped/20 rounded-lg overflow-hidden text-xs">
-              <button onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
+              <button disabled={bloqueado} onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${bloqueado ? 'opacity-60 cursor-not-allowed' : 'hover:bg-cesped/5'} ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70'}`}>
                 <FlagIcon code={p.local} size={12} /> {eqLocal?.nombre || 'Local'}
               </button>
-              <button onClick={() => setPrediccion(participanteId, p.id, valor === 'X' ? null : 'X')}
-                className={`px-3 py-1.5 border-r border-cesped/10 transition-colors font-bold tracking-wider ${valor === 'X' ? 'bg-ocre text-white' : 'text-cesped/50 hover:bg-cesped/5'}`}>
+              <button disabled={bloqueado} onClick={() => setPrediccion(participanteId, p.id, valor === 'X' ? null : 'X')}
+                className={`px-3 py-1.5 border-r border-cesped/10 transition-colors font-bold tracking-wider ${bloqueado ? 'opacity-60 cursor-not-allowed' : 'hover:bg-cesped/5'} ${valor === 'X' ? 'bg-ocre text-white' : 'text-cesped/50'}`}>
                 X
               </button>
-              <button onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
+              <button disabled={bloqueado} onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${bloqueado ? 'opacity-60 cursor-not-allowed' : 'hover:bg-cesped/5'} ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70'}`}>
                 <FlagIcon code={p.visita} size={12} /> {eqVisita?.nombre || 'Visitante'}
               </button>
             </div>
           ) : (
             <div className="inline-flex border border-cesped/20 rounded-lg overflow-hidden text-xs">
-              <button onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
+              <button disabled={bloqueado} onClick={() => setPrediccion(participanteId, p.id, valor === '1' ? null : '1')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 border-r border-cesped/10 transition-colors font-semibold ${bloqueado ? 'opacity-60 cursor-not-allowed' : 'hover:bg-cesped/5'} ${valor === '1' ? 'bg-ocre text-white' : 'text-cesped/70'}`}>
                 <FlagIcon code={p.local} size={12} /> {eqLocal?.nombre || 'Local'}
               </button>
-              <button onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70 hover:bg-cesped/5'}`}>
+              <button disabled={bloqueado} onClick={() => setPrediccion(participanteId, p.id, valor === '2' ? null : '2')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors font-semibold ${bloqueado ? 'opacity-60 cursor-not-allowed' : 'hover:bg-cesped/5'} ${valor === '2' ? 'bg-ocre text-white' : 'text-cesped/70'}`}>
                 <FlagIcon code={p.visita} size={12} /> {eqVisita?.nombre || 'Visitante'}
               </button>
             </div>
