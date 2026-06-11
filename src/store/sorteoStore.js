@@ -52,40 +52,27 @@ const useSorteoStore = create((set, get) => ({
     set({ asignaciones: {}, sorteado: false })
   },
 
-  rebalancear: async (participantes) => {
+  rebalancear: async () => {
     const current = get().asignaciones
     const pids = Object.keys(current)
     if (pids.length < 2) return
 
-    const counts = {}
-    for (const pid of pids) counts[pid] = current[pid].length
-    const values = Object.values(counts)
-    const min = Math.min(...values)
-    const max = Math.max(...values)
-    if (max === min) return
-
-    const rich = pids.filter(pid => counts[pid] > min).sort(() => Math.random() - 0.5)
-    const poor = pids.filter(pid => counts[pid] < max).sort(() => Math.random() - 0.5)
-    const movidas = Math.min(rich.length, poor.length)
+    const todosEquipos = equipos.map(e => e.id)
+    const faltan = pids.filter(pid => current[pid].length < 5)
+    if (faltan.length === 0) return
 
     const nuevas = {}
     for (const pid of pids) nuevas[pid] = [...current[pid]]
+    const rows = []
 
-    for (let i = 0; i < movidas; i++) {
-      const rPid = rich[i]
-      const pPid = poor[i]
-      const teamId = nuevas[rPid].pop()
-      nuevas[pPid].push(teamId)
+    for (const pid of faltan) {
+      const disponibles = todosEquipos.filter(eq => !nuevas[pid].includes(eq))
+      const elegido = disponibles[Math.floor(Math.random() * disponibles.length)]
+      nuevas[pid].push(elegido)
+      rows.push({ participante_id: Number(pid), equipo_id: elegido })
     }
 
     try {
-      await supabase.from('asignaciones').delete().neq('id', 0)
-      const rows = []
-      for (const pid of pids) {
-        for (const eqId of nuevas[pid]) {
-          rows.push({ participante_id: Number(pid), equipo_id: eqId })
-        }
-      }
       await supabase.from('asignaciones').insert(rows)
     } catch (e) { console.warn('Error guardando rebalanceo:', e) }
     set({ asignaciones: nuevas, sorteado: true })
