@@ -2,6 +2,7 @@ import useParticipantesStore from '../store/participantesStore'
 import useQuinielaStore from '../store/quinielaStore'
 import { calcularPuntos } from '../utils/puntuacion'
 import { TrophyIcon, UsersIcon, WalletIcon, HourglassIcon, BallIcon, DicesIcon, ClipboardIcon, CoinsIcon, ChartIcon, ChevronRightIcon } from '../components/ui/Icons'
+import Sunburst from '../components/ui/Sunburst'
 
 const STATS = [
   { icon: UsersIcon, value: null, label: 'Participantes', sub: 'inscritos', key: 'activos' },
@@ -149,9 +150,11 @@ export default function Dashboard() {
         overflow: 'hidden',
         border: '1px solid rgba(22,39,26,.18)',
         boxShadow: '0 22px 50px rgba(22,39,26,.16)',
+        position: 'relative',
       }}
     >
-      <div style={{ background: '#EFE6CC', padding: '30px 30px 34px' }}>
+      <Sunburst />
+      <div style={{ background: '#EFE6CC', padding: '30px 30px 34px', position: 'relative', zIndex: 1 }}>
         {/* Title row */}
         <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
           <div>

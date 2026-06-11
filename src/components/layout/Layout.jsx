@@ -1,12 +1,14 @@
 import Navbar from './Navbar'
+import Sunburst from '../ui/Sunburst'
 
 export default function Layout({ children }) {
   return (
-    <div className="min-h-screen bg-crema flex flex-col items-center">
-      <div className="w-full">
+    <div className="min-h-screen bg-crema flex flex-col items-center relative">
+      <Sunburst className="opacity-[0.025]" />
+      <div className="w-full relative z-1">
         <Navbar />
       </div>
-      <main className="w-full max-w-[1200px] px-4 lg:px-8 py-6">
+      <main className="w-full max-w-[1200px] px-4 lg:px-8 py-6 relative z-1">
         {children}
       </main>
     </div>
