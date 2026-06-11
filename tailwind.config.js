@@ -7,10 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        cesped: '#1a4731',
-        pasto: '#349959',
-        crema: '#f3ecd8',
-        ocre: '#c99b41',
+        cesped: '#14442B',
+        pasto: '#1E6B43',
+        crema: '#EFE6CC',
+        'crema-card': '#FBF6E6',
+        'crema-hover': '#FFFDF4',
+        'crema-text': '#F3EAD0',
+        ocre: '#D9A441',
+        plata: '#C9C4B2',
+        bronce: '#C0845A',
+        tinta: '#16271A',
         tinto: '#b54a3b',
       },
       fontFamily: {

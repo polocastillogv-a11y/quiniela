@@ -58,7 +58,7 @@ export default function Sorteo() {
             return (
               <Card key={pid} variant="light">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-gray-800">{p?.nombre || '?'}</h3>
+                  <h3 className="font-bold text-tinta">{p?.nombre || '?'}</h3>
                   <span className="text-xs font-semibold bg-pasto/10 text-pasto px-2 py-1 rounded-full">{eqs.length} equipos</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">

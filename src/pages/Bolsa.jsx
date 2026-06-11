@@ -70,7 +70,7 @@ export default function Bolsa() {
                   <div className="flex items-center gap-2">
                     <Avatar name={p.nombre} size="sm" />
                     <div>
-                      <span className="font-semibold text-gray-800">{p.nombre}</span>
+                      <span className="font-semibold text-tinta">{p.nombre}</span>
                       <span className="text-sm text-cesped/50 ml-2 font-mono">${p.cuota}</span>
                     </div>
                   </div>
@@ -100,7 +100,7 @@ export default function Bolsa() {
                   <div className="flex items-center gap-2">
                     <Avatar name={p.nombre} size="sm" />
                     <div>
-                      <span className="font-semibold text-gray-800">{p.nombre}</span>
+                      <span className="font-semibold text-tinta">{p.nombre}</span>
                       <span className="text-sm text-cesped/50 ml-2 font-mono">${p.cuota}</span>
                     </div>
                   </div>
@@ -134,7 +134,7 @@ export default function Bolsa() {
               {activos.map((p, i) => (
                 <tr key={p.id} className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
                   <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{i + 1}</td>
-                  <td className="py-3 pr-4 font-semibold text-gray-800">{p.nombre}</td>
+                  <td className="py-3 pr-4 font-semibold text-tinta">{p.nombre}</td>
                   <td className="py-3 pr-4 font-mono">${(p.cuota || 0).toLocaleString()}</td>
                   <td className="py-3 pr-4">
                     {p.pagado ? <Badge color="green"><CheckCircleIcon className="w-3 h-3" /> Si</Badge> : <Badge color="red"><XCircleIcon className="w-3 h-3" /> No</Badge>}

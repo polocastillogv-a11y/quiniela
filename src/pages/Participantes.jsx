@@ -118,7 +118,7 @@ export default function Participantes() {
                       {participantes.map((p, i) => (
                         <tr key={p.id} className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
                           <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{i + 1}</td>
-                          <td className="py-3 pr-4 font-semibold text-gray-800">{p.nombre}</td>
+                          <td className="py-3 pr-4 font-semibold text-tinta">{p.nombre}</td>
                           <td className="py-3 pr-4 font-mono text-sm">${(p.cuota || 0).toLocaleString()}</td>
                           <td className="py-3 pr-4">
                             {p.pagado

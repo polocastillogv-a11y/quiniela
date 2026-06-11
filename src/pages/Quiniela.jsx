@@ -208,7 +208,7 @@ export default function Quiniela() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <Avatar name={participante.nombre} size="sm" />
-                      <span className="font-bold text-gray-800">{participante.nombre}</span>
+                      <span className="font-bold text-tinta">{participante.nombre}</span>
                     </div>
                     <span className="text-sm text-cesped/50 font-mono">{hechos}/{total} pronosticados</span>
                   </div>
@@ -253,7 +253,7 @@ function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
     <tr className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
       <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{index + 1}</td>
       {mostrarFecha && <td className="py-3 pr-4 text-xs text-cesped/50 font-mono">{p.fecha || '—'}</td>}
-      <td className="py-3 pr-4 font-semibold text-gray-800"><span className="inline-flex items-center gap-1.5">{p.local && <FlagIcon code={p.local} size={14} />}{nEq(p.local)?.nombre || p.local || '—'}</span></td>
+      <td className="py-3 pr-4 font-semibold text-tinta"><span className="inline-flex items-center gap-1.5">{p.local && <FlagIcon code={p.local} size={14} />}{nEq(p.local)?.nombre || p.local || '—'}</span></td>
       <td className="py-3 pr-4 text-center">
         <span className="inline-flex items-center gap-1">
           <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
@@ -261,7 +261,7 @@ function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
           <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
         </span>
       </td>
-      <td className="py-3 pr-4 font-semibold text-gray-800"><span className="inline-flex items-center gap-1.5">{p.visita && <FlagIcon code={p.visita} size={14} />}{nEq(p.visita)?.nombre || p.visita || '—'}</span></td>
+      <td className="py-3 pr-4 font-semibold text-tinta"><span className="inline-flex items-center gap-1.5">{p.visita && <FlagIcon code={p.visita} size={14} />}{nEq(p.visita)?.nombre || p.visita || '—'}</span></td>
       <td className="py-3 text-center">{p.actualizado ? <span className="inline-flex items-center gap-1 text-xs text-pasto font-semibold"><CheckCircleIcon className="w-3.5 h-3.5" /> Jugado</span> : <span className="inline-flex items-center gap-1 text-xs text-cesped/40 font-semibold"><ClockIcon className="w-3.5 h-3.5" /> {p.fecha || 'Pendiente'}</span>}</td>
     </tr>
   )
@@ -284,7 +284,7 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
       <td className="py-3 pr-4 text-cesped/40 font-mono text-xs">{index + 1}</td>
       {mostrarFecha && <td className="py-3 pr-4 text-xs text-cesped/50 font-mono">{p.fecha || '—'}</td>}
       <td className="py-3 pr-4">
-        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-tinta">
           {p.local && <FlagIcon code={p.local} size={14} />}
           {eqLocal?.nombre || p.local || '—'}
         </span>
@@ -293,7 +293,7 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
         {p.actualizado ? `${p.marcador_local} - ${p.marcador_visita}` : <span className="text-cesped/20">? - ?</span>}
       </td>
       <td className="py-3 pr-4">
-        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-tinta">
           {p.visita && <FlagIcon code={p.visita} size={14} />}
           {eqVisita?.nombre || p.visita || '—'}
         </span>

@@ -45,7 +45,7 @@ export default function Resultados() {
                   i === 0 ? 'border-ocre/30 bg-ocre/5' :
                   i === 1 ? 'border-cesped/10 bg-cesped/[0.02]' :
                   i === 2 ? 'border-tinto/20 bg-tinto/5' :
-                  'border-cesped/5 bg-white'
+                  'border-cesped/5 bg-crema-card'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -60,7 +60,7 @@ export default function Resultados() {
                     </span>
                     <div className="flex items-center gap-2">
                       <Avatar name={r.nombre} size="md" />
-                      <span className="font-bold text-lg text-gray-800">{r.nombre}</span>
+                      <span className="font-bold text-lg text-tinta">{r.nombre}</span>
                     </div>
                   </div>
                   <div className="text-right">

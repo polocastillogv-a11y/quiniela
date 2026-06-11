@@ -47,7 +47,7 @@ export default function Bracket() {
           <Card key={p.id} variant="light" className="border-l-4 border-l-ocre">
             <div className="flex items-center justify-between">
               <div className="flex-1 text-right">
-                <span className="inline-flex items-center gap-1.5 justify-end text-lg font-bold text-gray-800">
+                <span className="inline-flex items-center gap-1.5 justify-end text-lg font-bold text-tinta">
                   {p.local && <FlagIcon code={p.local} size={18} />}
                   {getEquipo(p.local)?.nombre || p.local || '—'}
                 </span>
@@ -64,7 +64,7 @@ export default function Bracket() {
                 </div>
               </div>
               <div className="flex-1 text-left">
-                <span className="inline-flex items-center gap-1.5 text-lg font-bold text-gray-800">
+                <span className="inline-flex items-center gap-1.5 text-lg font-bold text-tinta">
                   {p.visita && <FlagIcon code={p.visita} size={18} />}
                   {getEquipo(p.visita)?.nombre || p.visita || '—'}
                 </span>
