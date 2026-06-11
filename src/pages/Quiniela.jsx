@@ -197,7 +197,7 @@ export default function Quiniela() {
         <div className="mt-10">
           <h2 className="text-xl font-display font-black text-cesped mb-4">Pronosticos de Participantes</h2>
           <div className="space-y-4">
-            {participantes.filter(p => p.activo !== false).map(participante => {
+            {participantes.filter(p => p.activo !== false && predicciones[p.id] && Object.keys(predicciones[p.id]).length > 0).map(participante => {
               const preds = predicciones[participante.id] || {}
               const eqt = getEquipos(participante.id)
               const misPartidos = eqt.length > 0 ? partidos.filter(p => eqt.includes(p.local) || eqt.includes(p.visita)) : partidos

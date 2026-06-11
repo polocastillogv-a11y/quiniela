@@ -10,7 +10,7 @@ export default function Resultados() {
   const partidos = useQuinielaStore(s => s.partidos)
   const predicciones = useQuinielaStore(s => s.predicciones)
 
-  const activos = participantes.filter(p => p.activo !== false)
+  const activos = participantes.filter(p => p.activo !== false && predicciones[p.id] && Object.keys(predicciones[p.id]).length > 0)
   const jugados = partidos.filter(p => p.actualizado).length
   const total = partidos.length
 
