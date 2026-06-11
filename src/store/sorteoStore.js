@@ -8,13 +8,18 @@ const useSorteoStore = create((set, get) => ({
   loaded: false,
 
   init: async () => {
-    const { data } = await supabase.from('asignaciones').select('*')
-    const asignaciones = {}
-    for (const a of data || []) {
-      if (!asignaciones[a.participante_id]) asignaciones[a.participante_id] = []
-      asignaciones[a.participante_id].push(a.equipo_id)
+    try {
+      const { data } = await supabase.from('asignaciones').select('*')
+      const asignaciones = {}
+      for (const a of data || []) {
+        if (!asignaciones[a.participante_id]) asignaciones[a.participante_id] = []
+        asignaciones[a.participante_id].push(a.equipo_id)
+      }
+      set({ asignaciones, sorteado: Object.keys(asignaciones).length > 0 })
+    } catch (e) {
+      console.warn('Error cargando sorteo:', e)
     }
-    set({ asignaciones, sorteado: Object.keys(asignaciones).length > 0, loaded: true })
+    set({ loaded: true })
   },
 
   ejecutar: async (participantes) => {
@@ -33,13 +38,17 @@ const useSorteoStore = create((set, get) => ({
       idx++
     }
 
-    await supabase.from('asignaciones').delete().neq('id', 0)
-    await supabase.from('asignaciones').insert(rows)
+    try {
+      await supabase.from('asignaciones').delete().neq('id', 0)
+      await supabase.from('asignaciones').insert(rows)
+    } catch (e) { console.warn('Error guardando sorteo:', e) }
     set({ asignaciones, sorteado: true })
   },
 
   resetear: async () => {
-    await supabase.from('asignaciones').delete().neq('id', 0)
+    try {
+      await supabase.from('asignaciones').delete().neq('id', 0)
+    } catch (e) { console.warn('Error reseteando sorteo:', e) }
     set({ asignaciones: {}, sorteado: false })
   },
 

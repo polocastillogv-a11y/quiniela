@@ -8,23 +8,28 @@ const useQuinielaStore = create((set, get) => ({
   loaded: false,
 
   init: async () => {
-    const [resR, resP] = await Promise.all([
-      supabase.from('resultados').select('*'),
-      supabase.from('predicciones').select('*'),
-    ])
+    try {
+      const [resR, resP] = await Promise.all([
+        supabase.from('resultados').select('*'),
+        supabase.from('predicciones').select('*'),
+      ])
 
-    const partidos = datosPartidos.map(p => {
-      const r = resR.data?.find(r => r.partido_id === p.id)
-      return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
-    })
+      const partidos = datosPartidos.map(p => {
+        const r = resR.data?.find(r => r.partido_id === p.id)
+        return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
+      })
 
-    const predicciones = {}
-    for (const pr of resP.data || []) {
-      if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
-      predicciones[pr.participante_id][pr.partido_id] = pr.valor
+      const predicciones = {}
+      for (const pr of resP.data || []) {
+        if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
+        predicciones[pr.participante_id][pr.partido_id] = pr.valor
+      }
+
+      set({ partidos, predicciones })
+    } catch (e) {
+      console.warn('Error cargando quiniela:', e)
     }
-
-    set({ partidos, predicciones, loaded: true })
+    set({ loaded: true })
   },
 
   actualizarResultado: async (partidoId, local, visita) => {
@@ -34,7 +39,9 @@ const useQuinielaStore = create((set, get) => ({
       marcador_visita: visita,
       actualizado: local !== null && visita !== null,
     }
-    await supabase.from('resultados').upsert(payload, { onConflict: 'partido_id' })
+    try {
+      await supabase.from('resultados').upsert(payload, { onConflict: 'partido_id' })
+    } catch (e) { console.warn('Error guardando resultado:', e) }
     set(state => ({
       partidos: state.partidos.map(p =>
         p.id === partidoId
@@ -46,17 +53,21 @@ const useQuinielaStore = create((set, get) => ({
 
   setPrediccion: async (participanteId, partidoId, valor) => {
     if (valor === null) {
-      await supabase.from('predicciones').delete().match({ participante_id: participanteId, partido_id: partidoId })
+      try {
+        await supabase.from('predicciones').delete().match({ participante_id: participanteId, partido_id: partidoId })
+      } catch (e) { console.warn('Error eliminando predicción:', e) }
       set(state => {
         const preds = { ...state.predicciones }
         if (preds[participanteId]) delete preds[participanteId][partidoId]
         return { predicciones: preds }
       })
     } else {
-      await supabase.from('predicciones').upsert(
-        { participante_id: participanteId, partido_id: partidoId, valor },
-        { onConflict: 'participante_id,partido_id' }
-      )
+      try {
+        await supabase.from('predicciones').upsert(
+          { participante_id: participanteId, partido_id: partidoId, valor },
+          { onConflict: 'participante_id,partido_id' }
+        )
+      } catch (e) { console.warn('Error guardando predicción:', e) }
       set(state => {
         const preds = { ...state.predicciones }
         if (!preds[participanteId]) preds[participanteId] = {}

@@ -6,35 +6,46 @@ const useParticipantesStore = create((set, get) => ({
   loaded: false,
 
   init: async () => {
-    const { data } = await supabase.from('participantes').select('*').order('id')
-    if (data) set({ participantes: data, loaded: true })
+    try {
+      const { data } = await supabase.from('participantes').select('*').order('id')
+      if (data) set({ participantes: data })
+    } catch (e) {
+      console.warn('Error cargando participantes:', e)
+    }
+    set({ loaded: true })
   },
 
   registrar: async (nombre, token, cuota = 0) => {
-    const exists = get().participantes.find(p => p.token === token)
-    if (exists) return false
-    const current = get().participantes
-    const nextId = current.length > 0 ? Math.max(...current.map(p => p.id)) + 1 : 1
-    const p = {
-      id: nextId, nombre, token, cuota: Number(cuota) || 0,
-      pagado: false, fecha_pago: null, metodo_pago: '', referencia: '',
-      activo: true, fecha_registro: new Date().toISOString(),
-    }
-    const { error } = await supabase.from('participantes').insert(p)
-    if (error) return false
-    set(state => ({ participantes: [...state.participantes, p] }))
-    return p
+    try {
+      const exists = get().participantes.find(p => p.token === token)
+      if (exists) return false
+      const current = get().participantes
+      const nextId = current.length > 0 ? Math.max(...current.map(p => p.id)) + 1 : 1
+      const p = {
+        id: nextId, nombre, token, cuota: Number(cuota) || 0,
+        pagado: false, fecha_pago: null, metodo_pago: '', referencia: '',
+        activo: true, fecha_registro: new Date().toISOString(),
+      }
+      const { error } = await supabase.from('participantes').insert(p)
+      if (error) return false
+      set(state => ({ participantes: [...state.participantes, p] }))
+      return p
+    } catch (e) { console.warn('Error registrando:', e); return false }
   },
 
   editar: async (id, datos) => {
-    await supabase.from('participantes').update(datos).eq('id', id)
+    try {
+      await supabase.from('participantes').update(datos).eq('id', id)
+    } catch (e) { console.warn('Error editando:', e) }
     set(state => ({
       participantes: state.participantes.map(p => p.id === id ? { ...p, ...datos } : p)
     }))
   },
 
   eliminar: async (id) => {
-    await supabase.from('participantes').delete().eq('id', id)
+    try {
+      await supabase.from('participantes').delete().eq('id', id)
+    } catch (e) { console.warn('Error eliminando:', e) }
     set(state => ({ participantes: state.participantes.filter(p => p.id !== id) }))
   },
 
@@ -43,7 +54,9 @@ const useParticipantesStore = create((set, get) => ({
     if (!p) return
     const pagado = !p.pagado
     const fecha_pago = pagado ? new Date().toISOString() : null
-    await supabase.from('participantes').update({ pagado, fecha_pago }).eq('id', id)
+    try {
+      await supabase.from('participantes').update({ pagado, fecha_pago }).eq('id', id)
+    } catch (e) { console.warn('Error toggle pago:', e) }
     set(state => ({
       participantes: state.participantes.map(x => x.id === id ? { ...x, pagado, fecha_pago } : x)
     }))
@@ -51,7 +64,9 @@ const useParticipantesStore = create((set, get) => ({
 
   actualizarPago: async (id, pagado, metodo, referencia) => {
     const fecha_pago = pagado ? new Date().toISOString() : null
-    await supabase.from('participantes').update({ pagado, metodo_pago: metodo, referencia, fecha_pago }).eq('id', id)
+    try {
+      await supabase.from('participantes').update({ pagado, metodo_pago: metodo, referencia, fecha_pago }).eq('id', id)
+    } catch (e) { console.warn('Error actualizando pago:', e) }
     set(state => ({
       participantes: state.participantes.map(p => p.id === id ? { ...p, pagado, metodo_pago: metodo, referencia, fecha_pago } : p)
     }))
