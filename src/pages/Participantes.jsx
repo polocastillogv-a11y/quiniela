@@ -62,7 +62,7 @@ export default function Participantes() {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <Card title="🔑 Iniciar Sesión">
-              <p className="text-sm text-gray-500 mb-3">Participante: tu token secreto. Admin: <code className="bg-gray-100 px-1 rounded">admin2026</code></p>
+              <p className="text-sm text-gray-500 mb-3">Ingresa tu token secreto para acceder.</p>
               {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
               <div className="flex gap-2">
                 <input type="text" value={tokenInput} onChange={e => { setTokenInput(e.target.value); setError('') }}
