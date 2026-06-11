@@ -21,7 +21,7 @@ export default function Sorteo() {
   const conteos = pids.map(pid => ({ pid: Number(pid), count: asignaciones[pid].length }))
   const minCount = conteos.length > 0 ? Math.min(...conteos.map(c => c.count)) : 0
   const maxCount = conteos.length > 0 ? Math.max(...conteos.map(c => c.count)) : 0
-  const necesitaRebalanceo = maxCount - minCount > 1
+  const necesitaRebalanceo = maxCount !== minCount
 
   if (sesion.tipo !== 'admin') {
     return (
