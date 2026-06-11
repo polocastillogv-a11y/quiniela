@@ -1,44 +1,76 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { supabase } from '../lib/supabase'
+import { partidos as datosPartidos, fases } from '../data/partidos'
 
-const useQuinielaStore = create(
-  persist(
-    (set, get) => ({
-      partidos: [],
-      predicciones: {},
+const useQuinielaStore = create((set, get) => ({
+  partidos: [],
+  predicciones: {},
+  loaded: false,
 
-      setPartidos: (partidos) => set({ partidos }),
+  init: async () => {
+    const [resR, resP] = await Promise.all([
+      supabase.from('resultados').select('*'),
+      supabase.from('predicciones').select('*'),
+    ])
 
-      actualizarResultado: (partidoId, local, visita) => {
-        set(state => ({
-          partidos: state.partidos.map(p =>
-            p.id === partidoId
-              ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null }
-              : p
-          ),
-        }))
-      },
+    const partidos = datosPartidos.map(p => {
+      const r = resR.data?.find(r => r.partido_id === p.id)
+      return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
+    })
 
-      setPrediccion: (participanteId, partidoId, valor) =>
-        set(state => {
-          const preds = { ...state.predicciones }
-          if (!preds[participanteId]) preds[participanteId] = {}
-          if (valor === null) {
-            delete preds[participanteId][partidoId]
-          } else {
-            preds[participanteId][partidoId] = valor
-          }
-          return { predicciones: preds }
-        }),
+    const predicciones = {}
+    for (const pr of resP.data || []) {
+      if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
+      predicciones[pr.participante_id][pr.partido_id] = pr.valor
+    }
 
-      getPrediccion: (participanteId, partidoId) =>
-        get().predicciones[participanteId]?.[partidoId] || null,
+    set({ partidos, predicciones, loaded: true })
+  },
 
-      getPrediccionesDeParticipante: (participanteId) =>
-        get().predicciones[participanteId] || {},
-    }),
-    { name: 'quiniela-quiniela' }
-  )
-)
+  actualizarResultado: async (partidoId, local, visita) => {
+    const payload = {
+      partido_id: partidoId,
+      marcador_local: local,
+      marcador_visita: visita,
+      actualizado: local !== null && visita !== null,
+    }
+    await supabase.from('resultados').upsert(payload, { onConflict: 'partido_id' })
+    set(state => ({
+      partidos: state.partidos.map(p =>
+        p.id === partidoId
+          ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null }
+          : p
+      ),
+    }))
+  },
+
+  setPrediccion: async (participanteId, partidoId, valor) => {
+    if (valor === null) {
+      await supabase.from('predicciones').delete().match({ participante_id: participanteId, partido_id: partidoId })
+      set(state => {
+        const preds = { ...state.predicciones }
+        if (preds[participanteId]) delete preds[participanteId][partidoId]
+        return { predicciones: preds }
+      })
+    } else {
+      await supabase.from('predicciones').upsert(
+        { participante_id: participanteId, partido_id: partidoId, valor },
+        { onConflict: 'participante_id,partido_id' }
+      )
+      set(state => {
+        const preds = { ...state.predicciones }
+        if (!preds[participanteId]) preds[participanteId] = {}
+        preds[participanteId][partidoId] = valor
+        return { predicciones: preds }
+      })
+    }
+  },
+
+  getPrediccion: (participanteId, partidoId) =>
+    get().predicciones[participanteId]?.[partidoId] || null,
+
+  getPrediccionesDeParticipante: (participanteId) =>
+    get().predicciones[participanteId] || {},
+}))
 
 export default useQuinielaStore

@@ -1,108 +1,73 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { supabase } from '../lib/supabase'
 
-let nextId = 1
+const useParticipantesStore = create((set, get) => ({
+  participantes: [],
+  loaded: false,
 
-const ADMIN_TOKEN = 'admin2026'
+  init: async () => {
+    const { data } = await supabase.from('participantes').select('*').order('id')
+    if (data) set({ participantes: data, loaded: true })
+  },
 
-const useParticipantesStore = create(
-  persist(
-    (set, get) => ({
-      participantes: [],
-      sesion: { tipo: null, participanteId: null, token: null },
+  registrar: async (nombre, token, cuota = 0) => {
+    const exists = get().participantes.find(p => p.token === token)
+    if (exists) return false
+    const current = get().participantes
+    const nextId = current.length > 0 ? Math.max(...current.map(p => p.id)) + 1 : 1
+    const p = {
+      id: nextId, nombre, token, cuota: Number(cuota) || 0,
+      pagado: false, fecha_pago: null, metodo_pago: '', referencia: '',
+      activo: true, fecha_registro: new Date().toISOString(),
+    }
+    const { error } = await supabase.from('participantes').insert(p)
+    if (error) return false
+    set(state => ({ participantes: [...state.participantes, p] }))
+    return p
+  },
 
-      registrar: (nombre, token, cuota = 0) => {
-        const exists = get().participantes.find(p => p.token === token)
-        if (exists) return false
-        const p = {
-          id: nextId++,
-          nombre,
-          token,
-          cuota,
-          pagado: false,
-          fecha_pago: null,
-          metodo_pago: '',
-          referencia: '',
-          activo: true,
-          fecha_registro: new Date().toISOString(),
-        }
-        set(state => ({ participantes: [...state.participantes, p] }))
-        set({ sesion: { tipo: 'participante', participanteId: p.id, token } })
-        return true
-      },
+  editar: async (id, datos) => {
+    await supabase.from('participantes').update(datos).eq('id', id)
+    set(state => ({
+      participantes: state.participantes.map(p => p.id === id ? { ...p, ...datos } : p)
+    }))
+  },
 
-      login: (token) => {
-        if (token === ADMIN_TOKEN) {
-          set({ sesion: { tipo: 'admin', participanteId: null, token } })
-          return 'admin'
-        }
-        const p = get().participantes.find(p => p.token === token)
-        if (p) {
-          set({ sesion: { tipo: 'participante', participanteId: p.id, token } })
-          return 'participante'
-        }
-        return false
-      },
+  eliminar: async (id) => {
+    await supabase.from('participantes').delete().eq('id', id)
+    set(state => ({ participantes: state.participantes.filter(p => p.id !== id) }))
+  },
 
-      logout: () => {
-        set({ sesion: { tipo: null, participanteId: null, token: null } })
-      },
+  togglePago: async (id) => {
+    const p = get().participantes.find(x => x.id === id)
+    if (!p) return
+    const pagado = !p.pagado
+    const fecha_pago = pagado ? new Date().toISOString() : null
+    await supabase.from('participantes').update({ pagado, fecha_pago }).eq('id', id)
+    set(state => ({
+      participantes: state.participantes.map(x => x.id === id ? { ...x, pagado, fecha_pago } : x)
+    }))
+  },
 
-      editar: (id, datos) =>
-        set(state => ({
-          participantes: state.participantes.map(p =>
-            p.id === id ? { ...p, ...datos } : p
-          ),
-        })),
+  actualizarPago: async (id, pagado, metodo, referencia) => {
+    const fecha_pago = pagado ? new Date().toISOString() : null
+    await supabase.from('participantes').update({ pagado, metodo_pago: metodo, referencia, fecha_pago }).eq('id', id)
+    set(state => ({
+      participantes: state.participantes.map(p => p.id === id ? { ...p, pagado, metodo_pago: metodo, referencia, fecha_pago } : p)
+    }))
+  },
 
-      eliminar: (id) => {
-        set(state => ({
-          participantes: state.participantes.filter(p => p.id !== id),
-          sesion: state.sesion.participanteId === id
-            ? { tipo: null, participanteId: null, token: null }
-            : state.sesion,
-        }))
-      },
+  getParticipante: (id) => get().participantes.find(p => p.id === id),
 
-      togglePago: (id) =>
-        set(state => ({
-          participantes: state.participantes.map(p =>
-            p.id === id
-              ? { ...p, pagado: !p.pagado, fecha_pago: !p.pagado ? new Date().toISOString() : null }
-              : p
-          ),
-        })),
+  getByToken: (token) => get().participantes.find(p => p.token === token),
 
-      actualizarPago: (id, pagado, metodo, referencia) =>
-        set(state => ({
-          participantes: state.participantes.map(p =>
-            p.id === id ? { ...p, pagado, metodo_pago: metodo, referencia, fecha_pago: pagado ? new Date().toISOString() : null } : p
-          ),
-        })),
+  getActivos: () => get().participantes.filter(p => p.activo !== false),
 
-      getParticipante: (id) => get().participantes.find(p => p.id === id),
+  totalBolsa: () => get().participantes.filter(p => p.pagado && p.activo !== false).reduce((s, p) => s + (p.cuota || 0), 0),
 
-      getParticipanteByToken: (token) => get().participantes.find(p => p.token === token),
+  totalEsperado: () => get().participantes.filter(p => p.activo !== false).reduce((s, p) => s + (p.cuota || 0), 0),
 
-      getActivos: () => get().participantes.filter(p => p.activo !== false),
-
-      totalBolsa: () =>
-        get().participantes
-          .filter(p => p.pagado && p.activo !== false)
-          .reduce((sum, p) => sum + (p.cuota || 0), 0),
-
-      totalEsperado: () =>
-        get().participantes
-          .filter(p => p.activo !== false)
-          .reduce((sum, p) => sum + (p.cuota || 0), 0),
-
-      totalPendiente: () => {
-        const s = get()
-        return s.totalEsperado() - s.totalBolsa()
-      },
-    }),
-    { name: 'quiniela-participantes' }
-  )
-)
+  totalPendiente: () => get().totalEsperado() - get().totalBolsa(),
+}))
 
 export default useParticipantesStore
