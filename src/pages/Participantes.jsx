@@ -24,7 +24,11 @@ export default function Participantes() {
   const handleRegister = async () => {
     if (!nombre.trim() || !token.trim()) { setError('Nombre y token son obligatorios'); return }
     const result = await registrar(nombre.trim(), token.trim(), Number(cuota) || 0)
-    if (!result) { setError('Ese token ya está registrado'); return }
+    if (!result.ok) {
+      if (result.reason === 'token_exists') { setError('Ese token ya está registrado'); return }
+      setError('Error al registrar: ' + (result.msg || 'intenta de nuevo'))
+      return
+    }
     setError(''); setNombre(''); setToken(''); setCuota('')
   }
 

@@ -18,7 +18,7 @@ const useParticipantesStore = create((set, get) => ({
   registrar: async (nombre, token, cuota = 0) => {
     try {
       const exists = get().participantes.find(p => p.token === token)
-      if (exists) return false
+      if (exists) return { ok: false, reason: 'token_exists' }
       const current = get().participantes
       const nextId = current.length > 0 ? Math.max(...current.map(p => p.id)) + 1 : 1
       const p = {
@@ -27,10 +27,10 @@ const useParticipantesStore = create((set, get) => ({
         activo: true, fecha_registro: new Date().toISOString(),
       }
       const { error } = await supabase.from('participantes').insert(p)
-      if (error) return false
+      if (error) return { ok: false, reason: 'db_error', msg: error.message }
       set(state => ({ participantes: [...state.participantes, p] }))
-      return p
-    } catch (e) { console.warn('Error registrando:', e); return false }
+      return { ok: true, participante: p }
+    } catch (e) { console.warn('Error registrando:', e); return { ok: false, reason: 'exception', msg: e.message } }
   },
 
   editar: async (id, datos) => {
