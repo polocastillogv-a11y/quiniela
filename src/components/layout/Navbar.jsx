@@ -9,6 +9,7 @@ const links = [
   { to: '/participantes', label: 'Participantes' },
   { to: '/sorteo', label: 'Sorteo' },
   { to: '/quiniela', label: 'Quiniela' },
+  { to: '/partidos', label: 'Partidos' },
   { to: '/bolsa', label: 'Bolsa' },
   { to: '/bracket', label: 'Bracket' },
   { to: '/resultados', label: 'Resultados' },

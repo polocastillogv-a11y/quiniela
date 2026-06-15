@@ -11,6 +11,7 @@ import Quiniela from './pages/Quiniela'
 import Bolsa from './pages/Bolsa'
 import Bracket from './pages/Bracket'
 import Resultados from './pages/Resultados'
+import Partidos from './pages/Partidos'
 
 export default function App() {
   const initP = useParticipantesStore(s => s.init)
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/participantes" element={<Participantes />} />
         <Route path="/sorteo" element={<Sorteo />} />
         <Route path="/quiniela" element={<Quiniela />} />
+        <Route path="/partidos" element={<Partidos />} />
         <Route path="/bolsa" element={<Bolsa />} />
         <Route path="/bracket" element={<Bracket />} />
         <Route path="/resultados" element={<Resultados />} />
