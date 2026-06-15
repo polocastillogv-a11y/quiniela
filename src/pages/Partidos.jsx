@@ -219,7 +219,7 @@ export default function Partidos() {
         <div>
           {completedMatches.length === 0
             ? <EmptyState icon="✅" title="Sin resultados aún" subtitle="El torneo comienza el 11 de junio" />
-            : completedMatches.toReversed().map(m => <MatchCard key={m.id} match={m} />)
+            : completedMatches.slice().reverse().map(m => <MatchCard key={m.id} match={m} />)
           }
         </div>
       )}

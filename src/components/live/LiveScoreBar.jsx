@@ -44,7 +44,7 @@ export default function LiveScoreBar() {
 
   const matches = partidos.map(p => {
     const tv = transmision[p.id] || {}
-    return { ...p, ...tv }
+    return { ...p, ...tv, freeTV: tv.freeTV || [], stadium: tv.stadium || '', city: tv.city || '', time: tv.time || '', date: tv.date || p.fecha || '' }
   })
 
   const today = todayStr()

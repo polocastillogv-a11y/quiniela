@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import useParticipantesStore from './store/participantesStore'
+import useQuinielaStore from './store/quinielaStore'
 import useSorteoStore from './store/sorteoStore'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
