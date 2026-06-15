@@ -35,6 +35,9 @@ function formatTime(timeStr) {
 
 function getStatus(m) {
   if (m.actualizado) return { type: 'ft', label: 'Finalizado', color: 'text-green-400' }
+  if (m.live_status === 'live') return { type: 'live', label: 'EN VIVO', color: 'text-green-400' }
+  if (m.live_status === 'ft') return { type: 'ft', label: 'Finalizado', color: 'text-green-400' }
+  if (m.live_status === 'ns') return { type: 'ns', label: 'Programado', color: 'text-blue-400' }
   if (!m.date) return { type: 'ns', label: 'Programado', color: 'text-blue-400' }
   const now = new Date()
   const matchTime = parseDate(m.date, m.time)

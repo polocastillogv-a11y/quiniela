@@ -52,25 +52,48 @@ const useQuinielaStore = create((set, get) => ({
 
       set(state => {
         const updated = [...state.partidos]
+        const seenKeys = new Set()
         let changed = false
 
         data.matches.forEach(m => {
           if (!m.homeAbbrev || !m.awayAbbrev) return
+          const key = `${m.homeAbbrev}-${m.awayAbbrev}`
+          seenKeys.add(key)
           const idx = updated.findIndex(
             p => p.local === m.homeAbbrev && p.visita === m.awayAbbrev
           )
           if (idx === -1) return
           const prev = updated[idx]
+
+          let newActualizado = prev.actualizado
+          let newLiveStatus = prev.live_status
+          if (m.status === 'FT') {
+            newActualizado = true
+            newLiveStatus = 'ft'
+          } else if (m.status === 'LIVE') {
+            newLiveStatus = 'live'
+          } else {
+            newLiveStatus = 'ns'
+          }
+
           const sameScore = prev.marcador_local === m.homeScore && prev.marcador_visita === m.awayScore
-          if (sameScore && prev.actualizado === (m.status === 'FT')) return
+          if (sameScore && prev.actualizado === newActualizado && prev.live_status === newLiveStatus) return
 
           updated[idx] = {
             ...prev,
             marcador_local: m.homeScore ?? prev.marcador_local,
             marcador_visita: m.awayScore ?? prev.marcador_visita,
-            actualizado: m.status === 'FT',
+            actualizado: newActualizado,
+            live_status: newLiveStatus,
           }
           changed = true
+        })
+
+        updated.forEach((p, idx) => {
+          if (p.live_status === 'live' && !seenKeys.has(`${p.local}-${p.visita}`)) {
+            updated[idx] = { ...p, actualizado: true, live_status: 'ft' }
+            changed = true
+          }
         })
 
         return changed ? { partidos: updated, lastLiveUpdate: new Date() } : { lastLiveUpdate: new Date() }
@@ -94,7 +117,7 @@ const useQuinielaStore = create((set, get) => ({
     set(state => ({
       partidos: state.partidos.map(p =>
         p.id === partidoId
-          ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null }
+          ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null, live_status: null }
           : p
       ),
     }))

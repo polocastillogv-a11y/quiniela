@@ -15,6 +15,9 @@ function todayStr() {
 
 function getStatus(m) {
   if (m.actualizado) return 'ft'
+  if (m.live_status === 'live') return 'live'
+  if (m.live_status === 'ft') return 'ft'
+  if (m.live_status === 'ns') return 'ns'
   if (!m.date || !m.time) return 'ns'
   const now = new Date()
   const matchTime = new Date(m.date + 'T' + m.time + ':00')
