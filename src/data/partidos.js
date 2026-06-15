@@ -10,11 +10,10 @@ export const fases = [
   { id: 'final', nombre: 'Final', orden: 6, mult: 4 },
 ]
 
-// Jornadas de fase de grupos
 export const jornadas = [
-  { id: 1, nombre: 'Jornada 1', dias: '11-13 Jun' },
-  { id: 2, nombre: 'Jornada 2', dias: '14-18 Jun' },
-  { id: 3, nombre: 'Jornada 3', dias: '19-27 Jun' },
+  { id: 1, nombre: 'Jornada 1', dias: '11-17 Jun' },
+  { id: 2, nombre: 'Jornada 2', dias: '18-23 Jun' },
+  { id: 3, nombre: 'Jornada 3', dias: '24-27 Jun' },
 ]
 
 function crearPartido(id, fase, grupo, local, visita, fecha, jornada) {
@@ -22,24 +21,10 @@ function crearPartido(id, fase, grupo, local, visita, fecha, jornada) {
 }
 
 const gruposLista = ['A','B','C','D','E','F','G','H','I','J','K','L']
+const fechaLookup = ["2026-06-11","2026-06-11","2026-06-18","2026-06-18","2026-06-24","2026-06-24","2026-06-12","2026-06-13","2026-06-18","2026-06-18","2026-06-24","2026-06-24","2026-06-13","2026-06-13","2026-06-19","2026-06-19","2026-06-24","2026-06-24","2026-06-12","2026-06-13","2026-06-19","2026-06-19","2026-06-25","2026-06-25","2026-06-15","2026-06-15","2026-06-20","2026-06-20","2026-06-25","2026-06-25","2026-06-14","2026-06-14","2026-06-20","2026-06-20","2026-06-26","2026-06-26","2026-06-14","2026-06-15","2026-06-21","2026-06-21","2026-06-26","2026-06-26","2026-06-15","2026-06-16","2026-06-21","2026-06-21","2026-06-26","2026-06-26","2026-06-16","2026-06-16","2026-06-22","2026-06-22","2026-06-27","2026-06-27","2026-06-16","2026-06-17","2026-06-22","2026-06-22","2026-06-27","2026-06-27","2026-06-17","2026-06-17","2026-06-23","2026-06-23","2026-06-27","2026-06-27","2026-06-17","2026-06-17","2026-06-23","2026-06-23","2026-06-27","2026-06-27"]  // PID 1-72 (index 0=pid1)
+
 const partidosFaseGrupos = []
 let pid = 1
-
-// 12 grupos × 6 partidos = 72 partidos
-// Asignación secuencial: 2 grupos por día, 4 partidos por día
-function generarFechas(diaInicio, numPartidos) {
-  const fechas = []
-  for (let i = 0; i < numPartidos; i++) {
-    const diaOffset = Math.floor(i / 4) // 4 partidos por día
-    const d = diaInicio + diaOffset
-    fechas.push(`2026-06-${String(d).padStart(2, '0')}`)
-  }
-  return fechas
-}
-
-const fechasJ1 = generarFechas(11, 24) // Jun 11-16 (2 grupos × 2 partidos × 6 días)
-const fechasJ2 = generarFechas(17, 24) // Jun 17-22
-const fechasJ3 = generarFechas(23, 24) // Jun 23-28
 
 for (const g of gruposLista) {
   const eqs = equipos.filter(e => e.grupo === g)
@@ -48,10 +33,7 @@ for (const g of gruposLista) {
     for (let idx = 0; idx < matches.length; idx++) {
       const [i, j] = matches[idx]
       const jornada = idx < 2 ? 1 : (idx < 4 ? 2 : 3)
-      const globalIdx = gruposLista.indexOf(g) * 6 + idx
-      const diaIdx = globalIdx % 24
-      const fechaJ = [null, fechasJ1, fechasJ2, fechasJ3]
-      const fecha = fechaJ[jornada][diaIdx]
+      const fecha = fechaLookup[pid - 1]
       partidosFaseGrupos.push(
         crearPartido(`g-${g}-${pid}`, 'grupos', g, eqs[i].id, eqs[j].id, fecha, jornada)
       )
@@ -60,22 +42,21 @@ for (const g of gruposLista) {
   }
 }
 
-// Eliminatorias con fechas reales
-const fechasR32 = ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03']
-const fechasR16 = ['2026-07-04','2026-07-05','2026-07-06','2026-07-07']
-const fechasCF = ['2026-07-09','2026-07-10','2026-07-11']
-const fechasSF = ['2026-07-14','2026-07-15']
+const fechasR32 = ["2026-06-28","2026-06-29","2026-06-29","2026-06-29","2026-06-30","2026-06-30","2026-06-30","2026-07-01","2026-07-01","2026-07-01","2026-07-02","2026-07-02","2026-07-02","2026-07-03","2026-07-03","2026-07-03"]
+const fechasR16 = ["2026-07-04","2026-07-04","2026-07-05","2026-07-05","2026-07-06","2026-07-06","2026-07-07","2026-07-07"]
+const fechasCF = ["2026-07-09","2026-07-10","2026-07-11","2026-07-11"]
+const fechasSF = ["2026-07-14","2026-07-15"]
 
 let eliminatorias = []
 
 for (let i = 0; i < 16; i++) {
-  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, null, null, fechasR32[i % fechasR32.length]))
+  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, null, null, fechasR32[i]))
 }
 for (let i = 0; i < 8; i++) {
-  eliminatorias.push(crearPartido(`r16-${i+1}`, 'r16', null, null, null, fechasR16[i % fechasR16.length]))
+  eliminatorias.push(crearPartido(`r16-${i+1}`, 'r16', null, null, null, fechasR16[i]))
 }
 for (let i = 0; i < 4; i++) {
-  eliminatorias.push(crearPartido(`cf-${i+1}`, 'cuartos', null, null, null, fechasCF[i % fechasCF.length]))
+  eliminatorias.push(crearPartido(`cf-${i+1}`, 'cuartos', null, null, null, fechasCF[i]))
 }
 eliminatorias.push(crearPartido('sf-1', 'semis', null, null, null, fechasSF[0]))
 eliminatorias.push(crearPartido('sf-2', 'semis', null, null, null, fechasSF[1]))
