@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import useQuinielaStore from '../store/quinielaStore'
 import { gruposLetras, getEquipo, getEquiposDelGrupo } from '../data/grupos'
 import { transmision } from '../data/transmision'
@@ -45,23 +45,16 @@ function getStatus(m) {
   return { type: 'pd', label: 'Pendiente', color: 'text-yellow-500' }
 }
 
-const GROUP_KEYS = ['A','B','C','D','E','F','G','H','I','J','K','L']
-
-function compIdToProjectId(compId) {
-  const gIdx = Math.floor((compId - 1) / 6)
-  const mIdx = (compId - 1) % 6 + 1
-  return `g-${GROUP_KEYS[gIdx]}-${mIdx}`
-}
-
 export default function Partidos() {
   const partidos = useQuinielaStore(s => s.partidos)
   const loaded = useQuinielaStore(s => s.loaded)
+  const liveUpdating = useQuinielaStore(s => s.liveUpdating)
+  const lastLiveUpdate = useQuinielaStore(s => s.lastLiveUpdate)
+  const fetchLiveScores = useQuinielaStore(s => s.fetchLiveScores)
 
   const [activeTab, setActiveTab] = useState('live')
   const [activeGroup, setActiveGroup] = useState('A')
   const [filter, setFilter] = useState('all')
-  const [loadingScores, setLoadingScores] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(null)
 
   const matches = partidos.map(p => {
     const tv = transmision[p.id] || {}
@@ -99,75 +92,6 @@ export default function Partidos() {
 
   const groupMatches = (group) => matches.filter(m => m.grupo === group)
 
-  const fetchScores = useCallback(async () => {
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-    if (!apiKey) return
-
-    setLoadingScores(true)
-    try {
-      const prompt = `Eres un asistente de fútbol. Devuelve SOLO un JSON válido (sin texto extra, sin markdown) con los resultados actuales de los partidos del Mundial 2026.
-
-IDs de los partidos: 1=México vs Sudáfrica, 2=Corea vs Chequia, 7=Canadá vs Bosnia, 13=Brasil vs Marruecos, 19=EEUU vs Paraguay, 20=Australia vs Türkiye, 25=Alemania vs Curazao, 31=Países Bajos vs Japón.
-
-Formato:
-{"matches":[{"id":1,"homeScore":2,"awayScore":0,"status":"FT","minute":null}]}
-
-Solo incluye partidos ya jugados o en curso. Si no sabes un resultado, no lo incluyas.`
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      })
-
-      const data = await res.json()
-      const text = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        if (parsed.matches && Array.isArray(parsed.matches)) {
-          useQuinielaStore.setState(state => {
-            const updated = [...state.partidos]
-            parsed.matches.forEach(r => {
-              const projectId = compIdToProjectId(r.id)
-              const idx = updated.findIndex(p => p.id === projectId)
-              if (idx !== -1) {
-                updated[idx] = {
-                  ...updated[idx],
-                  marcador_local: r.homeScore ?? updated[idx].marcador_local,
-                  marcador_visita: r.awayScore ?? updated[idx].marcador_visita,
-                  actualizado: r.status === 'FT' || r.status === 'LIVE' || r.status === 'HT',
-                }
-              }
-            })
-            return { partidos: updated }
-          })
-          setLastUpdate(new Date())
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching live scores:', err)
-    }
-    setLoadingScores(false)
-  }, [])
-
-  useEffect(() => {
-    if (import.meta.env.VITE_ANTHROPIC_API_KEY) {
-      fetchScores()
-      const interval = setInterval(fetchScores, 120000)
-      return () => clearInterval(interval)
-    }
-  }, [fetchScores])
-
   if (!loaded) {
     return (
       <Card variant="light">
@@ -195,18 +119,18 @@ Solo incluye partidos ya jugados o en curso. Si no sabes un resultado, no lo inc
           </p>
           <div className="mt-3 flex items-center justify-center gap-3">
             <button
-              onClick={fetchScores}
-              disabled={loadingScores || !import.meta.env.VITE_ANTHROPIC_API_KEY}
+              onClick={fetchLiveScores}
+              disabled={liveUpdating || !import.meta.env.VITE_ANTHROPIC_API_KEY}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white
                 bg-white/20 border border-white/30 hover:bg-white/30 transition-colors
                 disabled:opacity-50 disabled:cursor-wait"
             >
-              <span className={`inline-block ${loadingScores ? 'animate-spin' : ''}`}>⟳</span>
-              {loadingScores ? 'Actualizando...' : 'Actualizar marcadores'}
+              <span className={`inline-block ${liveUpdating ? 'animate-spin' : ''}`}>⟳</span>
+              {liveUpdating ? 'Actualizando...' : 'Actualizar marcadores'}
             </button>
-            {lastUpdate && (
+            {lastLiveUpdate && (
               <span className="text-[10px] text-white/50">
-                {lastUpdate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                {lastLiveUpdate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
             {!import.meta.env.VITE_ANTHROPIC_API_KEY && (
