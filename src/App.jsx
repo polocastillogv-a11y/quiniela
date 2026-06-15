@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import useParticipantesStore from './store/participantesStore'
 import useQuinielaStore from './store/quinielaStore'
 import useSorteoStore from './store/sorteoStore'
+import useBackgroundStore from './store/backgroundStore'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
 import Participantes from './pages/Participantes'
@@ -18,6 +19,9 @@ export default function App() {
   const initQ = useQuinielaStore(s => s.init)
   const initS = useSorteoStore(s => s.init)
   const fetchLiveScores = useQuinielaStore(s => s.fetchLiveScores)
+  const setAlternate = useBackgroundStore(s => s.setAlternate)
+  const seqRef = useRef([])
+  const timerRef = useRef(null)
 
   useEffect(() => {
     initP()
@@ -27,6 +31,24 @@ export default function App() {
     const interval = setInterval(fetchLiveScores, 120000)
     return () => { clearTimeout(t); clearInterval(interval) }
   }, [])
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      seqRef.current.push(e.key)
+      if (seqRef.current.length > 3) seqRef.current.shift()
+      if (seqRef.current.join('') === '912') {
+        setAlternate(true)
+        seqRef.current = []
+      }
+      clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => { seqRef.current = [] }, 2000)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => {
+      window.removeEventListener('keydown', handleKey)
+      clearTimeout(timerRef.current)
+    }
+  }, [setAlternate])
 
   return (
     <Layout>

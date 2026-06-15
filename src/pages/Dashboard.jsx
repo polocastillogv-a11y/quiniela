@@ -1,5 +1,6 @@
 import useParticipantesStore from '../store/participantesStore'
 import useQuinielaStore from '../store/quinielaStore'
+import useBackgroundStore from '../store/backgroundStore'
 import { calcularPuntos } from '../utils/puntuacion'
 import { TrophyIcon, UsersIcon, WalletIcon, HourglassIcon, BallIcon, DicesIcon, ClipboardIcon, CoinsIcon, ChartIcon, ChevronRightIcon } from '../components/ui/Icons'
 import Sunburst from '../components/ui/Sunburst'
@@ -114,6 +115,7 @@ function AccionRow({ icon: Icon, label, desc, to }) {
 }
 
 export default function Dashboard() {
+  const alternate = useBackgroundStore(s => s.alternate)
   const participantes = useParticipantesStore(s => s.participantes)
   const totalBolsa = useParticipantesStore(s => s.totalBolsa)
   const totalEsperado = useParticipantesStore(s => s.totalEsperado)
@@ -144,17 +146,22 @@ export default function Dashboard() {
 
   return (
     <div
-      className="w-full"
-      style={{
-        borderRadius: 18,
-        overflow: 'hidden',
-        border: '1px solid rgba(22,39,26,.18)',
-        boxShadow: '0 22px 50px rgba(22,39,26,.16)',
-        position: 'relative',
-      }}
-    >
-      <Sunburst />
-      <div style={{ background: '#EFE6CC', padding: '30px 30px 34px', position: 'relative', zIndex: 1 }}>
+        className="w-full"
+        style={{
+          borderRadius: 18,
+          overflow: 'hidden',
+          border: '1px solid rgba(22,39,26,.18)',
+          boxShadow: '0 22px 50px rgba(22,39,26,.16)',
+          position: 'relative',
+          ...(alternate ? {} : {
+            backgroundImage: 'url(/fondo_mund.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }),
+        }}
+      >
+        <Sunburst />
+        <div style={{ background: alternate ? '#EFE6CC' : 'rgba(239, 230, 204, 0.88)', padding: '30px 30px 34px', position: 'relative', zIndex: 1 }}>
         {/* Title row */}
         <div className="flex items-end justify-between" style={{ marginBottom: 24 }}>
           <div>
