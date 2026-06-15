@@ -23,12 +23,9 @@ export default function App() {
     initP()
     initQ()
     initS()
-    let interval
-    if (import.meta.env.VITE_ANTHROPIC_API_KEY) {
-      fetchLiveScores()
-      interval = setInterval(fetchLiveScores, 120000)
-    }
-    return () => { if (interval) clearInterval(interval) }
+    const t = setTimeout(fetchLiveScores, 3000)
+    const interval = setInterval(fetchLiveScores, 120000)
+    return () => { clearTimeout(t); clearInterval(interval) }
   }, [])
 
   return (

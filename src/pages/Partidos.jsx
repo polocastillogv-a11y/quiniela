@@ -120,7 +120,7 @@ export default function Partidos() {
           <div className="mt-3 flex items-center justify-center gap-3">
             <button
               onClick={fetchLiveScores}
-              disabled={liveUpdating || !import.meta.env.VITE_ANTHROPIC_API_KEY}
+              disabled={liveUpdating}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white
                 bg-white/20 border border-white/30 hover:bg-white/30 transition-colors
                 disabled:opacity-50 disabled:cursor-wait"
@@ -131,11 +131,6 @@ export default function Partidos() {
             {lastLiveUpdate && (
               <span className="text-[10px] text-white/50">
                 {lastLiveUpdate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            )}
-            {!import.meta.env.VITE_ANTHROPIC_API_KEY && (
-              <span className="text-[10px] text-white/40 italic">
-                (admin ingresa resultados en Quiniela)
               </span>
             )}
           </div>
