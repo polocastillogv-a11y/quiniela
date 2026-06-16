@@ -44,59 +44,89 @@ const useQuinielaStore = create((set, get) => ({
 
     set({ liveUpdating: true })
     try {
-      const res = await fetch('/api/live-scores')
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yStr = yesterday.toISOString().split('T')[0].replace(/-/g, '')
+
+      const [res, resY] = await Promise.all([
+        fetch('/api/live-scores'),
+        fetch(`/api/live-scores?dates=${yStr}`),
+      ])
       if (!res.ok) throw new Error(`API returned ${res.status}`)
 
       const data = await res.json()
-      if (!data.matches || !Array.isArray(data.matches)) return
+      const dataY = resY.ok ? await resY.json() : { matches: [] }
+      const allMatches = [...(data.matches || []), ...(dataY.matches || [])]
+      if (allMatches.length === 0) return
 
-      set(state => {
-        const updated = [...state.partidos]
-        const seenKeys = new Set()
-        let changed = false
+      const updated = [...partidos]
+      const seenKeys = new Set()
+      let changed = false
+      const ftBatch = []
 
-        data.matches.forEach(m => {
-          if (!m.homeAbbrev || !m.awayAbbrev) return
-          const key = `${m.homeAbbrev}-${m.awayAbbrev}`
-          seenKeys.add(key)
-          const idx = updated.findIndex(
-            p => p.local === m.homeAbbrev && p.visita === m.awayAbbrev
-          )
-          if (idx === -1) return
-          const prev = updated[idx]
+      allMatches.forEach(m => {
+        if (!m.homeAbbrev || !m.awayAbbrev) return
+        const key = `${m.homeAbbrev}-${m.awayAbbrev}`
+        seenKeys.add(key)
+        const idx = updated.findIndex(
+          p => p.local === m.homeAbbrev && p.visita === m.awayAbbrev
+        )
+        if (idx === -1) return
+        const prev = updated[idx]
 
-          let newActualizado = prev.actualizado
-          let newLiveStatus = prev.live_status
-          if (m.status === 'FT') {
-            newActualizado = true
-            newLiveStatus = 'ft'
-          } else if (m.status === 'LIVE') {
-            newLiveStatus = 'live'
-          } else {
-            newLiveStatus = 'ns'
-          }
+        let newActualizado = prev.actualizado
+        let newLiveStatus = prev.live_status
+        if (m.status === 'FT') {
+          newActualizado = true
+          newLiveStatus = 'ft'
+        } else if (m.status === 'LIVE') {
+          newLiveStatus = 'live'
+        } else {
+          newLiveStatus = 'ns'
+        }
 
-          const sameScore = prev.marcador_local === m.homeScore && prev.marcador_visita === m.awayScore
-          if (sameScore && prev.actualizado === newActualizado && prev.live_status === newLiveStatus) return
+        const sameScore = prev.marcador_local === m.homeScore && prev.marcador_visita === m.awayScore
+        if (sameScore && prev.actualizado === newActualizado && prev.live_status === newLiveStatus) return
 
-          updated[idx] = {
-            ...prev,
-            marcador_local: m.homeScore ?? prev.marcador_local,
-            marcador_visita: m.awayScore ?? prev.marcador_visita,
-            actualizado: newActualizado,
-            live_status: newLiveStatus,
-          }
+        updated[idx] = {
+          ...prev,
+          marcador_local: m.homeScore ?? prev.marcador_local,
+          marcador_visita: m.awayScore ?? prev.marcador_visita,
+          actualizado: newActualizado,
+          live_status: newLiveStatus,
+        }
+        changed = true
+
+        if (newActualizado && !prev.actualizado) {
+          ftBatch.push({ id: prev.id, local: m.homeScore, visita: m.awayScore })
+        }
+      })
+
+      updated.forEach((p, idx) => {
+        if (p.live_status === 'live' && !seenKeys.has(`${p.local}-${p.visita}`)) {
+          updated[idx] = { ...p, actualizado: true, live_status: 'ft' }
           changed = true
-        })
+        }
+      })
 
-        updated.forEach((p, idx) => {
-          if (p.live_status === 'live' && !seenKeys.has(`${p.local}-${p.visita}`)) {
-            updated[idx] = { ...p, actualizado: true, live_status: 'ft' }
-            changed = true
+      if (ftBatch.length > 0) {
+        for (const ft of ftBatch) {
+          try {
+            await supabase.from('resultados').upsert({
+              partido_id: ft.id,
+              marcador_local: ft.local,
+              marcador_visita: ft.visita,
+              actualizado: true,
+            }, { onConflict: 'partido_id' })
+          } catch (e) {
+            console.warn('Error persisting live result:', e)
           }
-        })
+        }
+      }
 
-        return changed ? { partidos: updated, lastLiveUpdate: new Date() } : { lastLiveUpdate: new Date() }
+      set({
+        partidos: changed ? updated : partidos,
+        lastLiveUpdate: new Date(),
       })
     } catch (err) {
       console.error('Error fetching live scores:', err)

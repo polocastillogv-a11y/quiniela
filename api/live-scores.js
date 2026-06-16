@@ -5,10 +5,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   try {
-    const espnRes = await fetch(
-      'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard',
-      { headers: { Referer: 'https://www.espn.com/' } }
-    )
+    const dates = req.query.dates || ''
+    let url = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
+    if (dates) url += `?dates=${dates}`
+
+    const espnRes = await fetch(url, { headers: { Referer: 'https://www.espn.com/' } })
 
     if (!espnRes.ok) throw new Error(`ESPN returned ${espnRes.status}`)
 
