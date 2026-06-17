@@ -44,19 +44,11 @@ const useQuinielaStore = create((set, get) => ({
 
     set({ liveUpdating: true })
     try {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yStr = yesterday.toISOString().split('T')[0].replace(/-/g, '')
-
-      const [res, resY] = await Promise.all([
-        fetch('/api/live-scores'),
-        fetch(`/api/live-scores?dates=${yStr}`),
-      ])
+      const res = await fetch('/api/live-scores?days=7', { cache: 'no-cache' })
       if (!res.ok) throw new Error(`API returned ${res.status}`)
 
       const data = await res.json()
-      const dataY = resY.ok ? await resY.json() : { matches: [] }
-      const allMatches = [...(data.matches || []), ...(dataY.matches || [])]
+      const allMatches = data.matches || []
       if (allMatches.length === 0) return
 
       const updated = [...partidos]
