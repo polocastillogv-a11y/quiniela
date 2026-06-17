@@ -1,6 +1,7 @@
 import { ChartBarIcon } from '@heroicons/react/24/outline'
 import useParticipantesStore from '../store/participantesStore'
 import useQuinielaStore from '../store/quinielaStore'
+import useSorteoStore from '../store/sorteoStore'
 import { calcularPuntos } from '../utils/puntuacion'
 import Card from '../components/ui/Card'
 import Avatar from '../components/ui/Avatar'
@@ -9,13 +10,14 @@ export default function Resultados() {
   const participantes = useParticipantesStore(s => s.participantes)
   const partidos = useQuinielaStore(s => s.partidos)
   const predicciones = useQuinielaStore(s => s.predicciones)
+  const getEquipos = useSorteoStore(s => s.getEquipos)
 
   const activos = participantes.filter(p => p.activo !== false && predicciones[p.id] && Object.keys(predicciones[p.id]).length > 0)
   const jugados = partidos.filter(p => p.actualizado).length
   const total = partidos.length
 
   const rankings = activos.map(p => {
-    const res = calcularPuntos(predicciones, p.id, partidos)
+    const res = calcularPuntos(predicciones, p.id, partidos, getEquipos(p.id))
     return { ...p, ...res }
   })
 

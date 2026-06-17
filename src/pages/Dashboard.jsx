@@ -1,6 +1,7 @@
 import useParticipantesStore from '../store/participantesStore'
 import useQuinielaStore from '../store/quinielaStore'
 import useBackgroundStore from '../store/backgroundStore'
+import useSorteoStore from '../store/sorteoStore'
 import { calcularPuntos } from '../utils/puntuacion'
 import { TrophyIcon, UsersIcon, WalletIcon, HourglassIcon, BallIcon, DicesIcon, ClipboardIcon, CoinsIcon, ChartIcon, ChevronRightIcon } from '../components/ui/Icons'
 import Sunburst from '../components/ui/Sunburst'
@@ -122,6 +123,7 @@ export default function Dashboard() {
   const totalPendiente = useParticipantesStore(s => s.totalPendiente)
   const partidos = useQuinielaStore(s => s.partidos)
   const predicciones = useQuinielaStore(s => s.predicciones)
+  const getEquipos = useSorteoStore(s => s.getEquipos)
 
   const activos = participantes.filter(p => p.activo !== false)
   const jugados = partidos.filter(p => p.actualizado).length
@@ -130,7 +132,7 @@ export default function Dashboard() {
   const pendiente = totalPendiente()
 
   const rankings = activos.map(p => {
-    const res = calcularPuntos(predicciones, p.id, partidos)
+    const res = calcularPuntos(predicciones, p.id, partidos, getEquipos(p.id))
     return { ...p, puntos: res.puntos }
   }).sort((a, b) => b.puntos - a.puntos)
 

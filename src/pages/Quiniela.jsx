@@ -35,18 +35,20 @@ export default function Quiniela() {
   const predicciones = useQuinielaStore(s => s.predicciones)
   const getEquipos = useSorteoStore(s => s.getEquipos)
   const sorteado = useSorteoStore(s => s.sorteado)
+  const sorteoLoaded = useSorteoStore(s => s.loaded)
 
   const [faseActiva, setFaseActiva] = useState('grupos')
   const [jornadaActiva, setJornadaActiva] = useState(1)
   const [tokenInput, setTokenInput] = useState('')
   const [errorLogin, setErrorLogin] = useState('')
 
-  const eqParticipante = sesion.tipo === 'participante' ? getEquipos(sesion.participanteId) : []
+  const eqParticipante = sesion.tipo === 'participante' && sorteoLoaded ? getEquipos(sesion.participanteId) : []
 
   const partidosFase = partidos.filter(p => {
     if (p.fase !== faseActiva) return false
-    if (sesion.tipo === 'participante' && eqParticipante.length > 0) {
-      return eqParticipante.includes(p.local) || eqParticipante.includes(p.visita)
+    if (sesion.tipo === 'participante') {
+      if (!sorteoLoaded) return false
+      return eqParticipante.length === 0 || eqParticipante.includes(p.local) || eqParticipante.includes(p.visita)
     }
     return true
   })

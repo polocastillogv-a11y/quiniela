@@ -7,7 +7,7 @@ function getResultadoReal(p) {
   return 'X'
 }
 
-export function calcularPuntos(predicciones, participanteId, partidos) {
+export function calcularPuntos(predicciones, participanteId, partidos, equiposParticipante = []) {
   let puntos = 0
   const detalles = []
   const preds = predicciones[participanteId] || {}
@@ -17,6 +17,7 @@ export function calcularPuntos(predicciones, participanteId, partidos) {
     if (!p.actualizado) continue
     const pred = preds[p.id]
     if (!pred) continue
+    if (equiposParticipante.length > 0 && !equiposParticipante.includes(p.local) && !equiposParticipante.includes(p.visita)) continue
 
     const fase = fases.find(f => f.id === p.fase)
     const mult = fase?.mult || 1
