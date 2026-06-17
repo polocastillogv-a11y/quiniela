@@ -1,6 +1,40 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
-import { partidos as datosPartidos, fases } from '../data/partidos'
+import { partidos as datosPartidos } from '../data/partidos'
+
+const LS_KEY = 'quiniela_resultados'
+
+function saveResultadosLocal(partidos) {
+  try {
+    const r = partidos.filter(p => p.actualizado).map(p => ({
+      partido_id: p.id,
+      marcador_local: p.marcador_local,
+      marcador_visita: p.marcador_visita,
+      actualizado: p.actualizado,
+    }))
+    localStorage.setItem(LS_KEY, JSON.stringify(r))
+  } catch (e) {
+    console.warn('Error saving to localStorage:', e)
+  }
+}
+
+function loadResultadosLocal() {
+  try {
+    const data = localStorage.getItem(LS_KEY)
+    return data ? JSON.parse(data) : []
+  } catch {
+    return []
+  }
+}
+
+function mergeResultados(resultados) {
+  return datosPartidos.map(p => {
+    const r = resultados.find(r => r.partido_id === p.id)
+    return r
+      ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado }
+      : p
+  })
+}
 
 const useQuinielaStore = create((set, get) => ({
   partidos: [],
@@ -16,12 +50,15 @@ const useQuinielaStore = create((set, get) => ({
         supabase.from('predicciones').select('*'),
       ])
 
-      if (!resR.error) {
-        const partidos = datosPartidos.map(p => {
-          const r = resR.data?.find(r => r.partido_id === p.id)
-          return r ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado } : p
-        })
-        set({ partidos })
+      if (!resR.error && resR.data?.length > 0) {
+        set({ partidos: mergeResultados(resR.data) })
+      } else {
+        const local = loadResultadosLocal()
+        if (local.length > 0) {
+          set({ partidos: mergeResultados(local) })
+        } else {
+          set({ partidos: datosPartidos.map(p => ({ ...p })) })
+        }
       }
 
       if (!resP.error && resP.data) {
@@ -34,6 +71,8 @@ const useQuinielaStore = create((set, get) => ({
       }
     } catch (e) {
       console.warn('Error cargando quiniela:', e)
+      const local = loadResultadosLocal()
+      set({ partidos: local.length > 0 ? mergeResultados(local) : datosPartidos.map(p => ({ ...p })) })
     }
     set({ loaded: true })
   },
@@ -120,6 +159,8 @@ const useQuinielaStore = create((set, get) => ({
         partidos: changed ? updated : partidos,
         lastLiveUpdate: new Date(),
       })
+
+      if (changed) saveResultadosLocal(get().partidos)
     } catch (err) {
       console.error('Error fetching live scores:', err)
     }
@@ -136,13 +177,15 @@ const useQuinielaStore = create((set, get) => ({
     try {
       await supabase.from('resultados').upsert(payload, { onConflict: 'partido_id' })
     } catch (e) { console.warn('Error guardando resultado:', e) }
-    set(state => ({
-      partidos: state.partidos.map(p =>
+    set(state => {
+      const partidos = state.partidos.map(p =>
         p.id === partidoId
           ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null, live_status: null }
           : p
-      ),
-    }))
+      )
+      saveResultadosLocal(partidos)
+      return { partidos }
+    })
   },
 
   setPrediccion: async (participanteId, partidoId, valor) => {
