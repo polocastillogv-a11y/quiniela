@@ -17,7 +17,10 @@ export function calcularPuntos(predicciones, participanteId, partidos, equiposPa
     if (!p.actualizado) continue
     const pred = preds[p.id]
     if (!pred) continue
-    if (equiposParticipante.length > 0 && !equiposParticipante.includes(p.local) && !equiposParticipante.includes(p.visita)) continue
+    if (equiposParticipante.length > 0 && !equiposParticipante.includes(p.local) && !equiposParticipante.includes(p.visita)) {
+      const pred = preds[p.id]
+      if (!pred) continue
+    }
 
     const fase = fases.find(f => f.id === p.fase)
     const mult = fase?.mult || 1
