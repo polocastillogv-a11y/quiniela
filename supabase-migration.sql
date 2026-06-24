@@ -49,3 +49,12 @@ ALTER TABLE participantes DISABLE ROW LEVEL SECURITY;
 ALTER TABLE predicciones DISABLE ROW LEVEL SECURITY;
 ALTER TABLE asignaciones DISABLE ROW LEVEL SECURITY;
 ALTER TABLE resultados DISABLE ROW LEVEL SECURITY;
+
+-- 5. Emparejamientos de la fase de eliminación directa (generados automáticamente)
+CREATE TABLE IF NOT EXISTS emparejamientos (
+  partido_id TEXT PRIMARY KEY,
+  local TEXT,
+  visita TEXT
+);
+
+ALTER TABLE emparejamientos DISABLE ROW LEVEL SECURITY;

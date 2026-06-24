@@ -137,6 +137,9 @@ export default function Quiniela() {
             {f.nombre} <span className="text-xs opacity-60 font-mono">(x{f.mult})</span>
           </button>
         ))}
+        {sesion.tipo === 'admin' && faseActiva === 'r32' && (
+          <GenerarR32Btn />
+        )}
       </div>
 
       {faseActiva === 'grupos' && (
@@ -242,6 +245,34 @@ export default function Quiniela() {
         </div>
       )}
     </div>
+  )
+}
+
+function GenerarR32Btn() {
+  const generarR32 = useQuinielaStore(s => s.generarR32)
+  const partidos = useQuinielaStore(s => s.partidos)
+  const [loading, setLoading] = useState(false)
+  const r32listos = partidos.filter(p => p.id.startsWith('r32-') && p.local && p.visita).length
+
+  const handleClick = async () => {
+    setLoading(true)
+    try {
+      const res = await generarR32()
+      if (res.length > 0) alert(`Ronda de 32 generada con ${res.length} partidos`)
+    } catch (e) {
+      alert('Error al generar: ' + e.message)
+    }
+    setLoading(false)
+  }
+
+  return (
+    <button onClick={handleClick} disabled={loading}
+      className={`ml-auto px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-colors
+        ${r32listos > 0 ? 'bg-pasto/20 text-pasto border border-pasto/30' : 'bg-tinto/10 text-tinto border border-tinto/30'}
+        hover:opacity-80 disabled:opacity-50 disabled:cursor-wait`}
+    >
+      {loading ? 'Generando...' : r32listos > 0 ? `Volver a generar R32 (${r32listos}/16)` : 'Generar Ronda de 32'}
+    </button>
   )
 }
 

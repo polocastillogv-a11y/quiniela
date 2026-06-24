@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { partidos as datosPartidos } from '../data/partidos'
+import { generarR32 } from '../utils/llaves'
 
 const LS_KEY = 'quiniela_resultados'
 
@@ -45,21 +46,30 @@ const useQuinielaStore = create((set, get) => ({
 
   init: async () => {
     try {
-      const [resR, resP] = await Promise.all([
+      const [resR, resP, resE] = await Promise.all([
         supabase.from('resultados').select('*'),
         supabase.from('predicciones').select('*'),
+        supabase.from('emparejamientos').select('*'),
       ])
 
+      let merged = datosPartidos.map(p => ({ ...p }))
       if (!resR.error && resR.data?.length > 0) {
-        set({ partidos: mergeResultados(resR.data) })
+        merged = mergeResultados(resR.data)
       } else {
         const local = loadResultadosLocal()
-        if (local.length > 0) {
-          set({ partidos: mergeResultados(local) })
-        } else {
-          set({ partidos: datosPartidos.map(p => ({ ...p })) })
+        if (local.length > 0) merged = mergeResultados(local)
+      }
+
+      if (!resE.error && resE.data?.length > 0) {
+        for (const e of resE.data) {
+          const idx = merged.findIndex(p => p.id === e.partido_id)
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], local: e.local ?? merged[idx].local, visita: e.visita ?? merged[idx].visita }
+          }
         }
       }
+
+      set({ partidos: merged })
 
       if (!resP.error && resP.data) {
         const predicciones = {}
@@ -224,6 +234,28 @@ const useQuinielaStore = create((set, get) => ({
 
   getPrediccionesDeParticipante: (participanteId) =>
     get().predicciones[participanteId] || {},
+
+  generarR32: async () => {
+    const partidos = get().partidos
+    const emparejamientos = generarR32(partidos)
+    try {
+      await supabase.from('emparejamientos').delete().neq('partido_id', '')
+      if (emparejamientos.length > 0) {
+        await supabase.from('emparejamientos').insert(emparejamientos)
+      }
+    } catch (e) { console.warn('Error guardando emparejamientos:', e) }
+    set(state => {
+      const updated = state.partidos.map(p => {
+        const e = emparejamientos.find(emp => emp.partido_id === p.id)
+        if (e && (p.local !== e.local || p.visita !== e.visita)) {
+          return { ...p, local: e.local ?? p.local, visita: e.visita ?? p.visita }
+        }
+        return p
+      })
+      return { partidos: updated }
+    })
+    return emparejamientos
+  },
 }))
 
 export default useQuinielaStore
