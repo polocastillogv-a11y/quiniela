@@ -2,28 +2,24 @@ import { equipos } from '../data/equipos'
 
 const GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
-// Fixed R32 pairings: 1st vs 2nd
-const FIJOS = [
-  { n: 1,  local: { tipo: '1', grupo: 'A' }, visita: { tipo: '2', grupo: 'B' } },
-  { n: 2,  local: { tipo: '1', grupo: 'B' }, visita: { tipo: '2', grupo: 'A' } },
-  { n: 3,  local: { tipo: '1', grupo: 'C' }, visita: { tipo: '2', grupo: 'D' } },
-  { n: 4,  local: { tipo: '1', grupo: 'D' }, visita: { tipo: '2', grupo: 'C' } },
-  { n: 5,  local: { tipo: '1', grupo: 'E' }, visita: { tipo: '2', grupo: 'F' } },
-  { n: 6,  local: { tipo: '1', grupo: 'F' }, visita: { tipo: '2', grupo: 'E' } },
-  { n: 7,  local: { tipo: '1', grupo: 'G' }, visita: { tipo: '2', grupo: 'H' } },
-  { n: 8,  local: { tipo: '1', grupo: 'H' }, visita: { tipo: '2', grupo: 'G' } },
-  { n: 9,  local: { tipo: '1', grupo: 'I' }, visita: { tipo: '2', grupo: 'J' } },
-  { n: 10, local: { tipo: '1', grupo: 'J' }, visita: { tipo: '2', grupo: 'I' } },
-  { n: 11, local: { tipo: '1', grupo: 'K' }, visita: { tipo: '2', grupo: 'L' } },
-  { n: 12, local: { tipo: '1', grupo: 'L' }, visita: { tipo: '2', grupo: 'K' } },
-]
-
-// Third-place slot pools (FIFA Official)
-const TERCEROS = [
-  { n: 13, local: ['A','B','C'], visita: ['D','E','F'] },
-  { n: 14, local: ['G','H','I'], visita: ['J','K','L'] },
-  { n: 15, local: ['A','B','D'], visita: ['C','E','G'] },
-  { n: 16, local: ['F','H','J'], visita: ['I','K','L'] },
+// FIFA Official R32 pairings (Match IDs 73-88)
+const R32_PAIRINGS = [
+  { n: 1,  local: { tipo: '2', grupo: 'A' }, visita: { tipo: '2', grupo: 'B' } },
+  { n: 2,  local: { tipo: '1', grupo: 'E' }, visita: { tipo: '3', pools: ['A','B','C','D','F'] } },
+  { n: 3,  local: { tipo: '1', grupo: 'F' }, visita: { tipo: '2', grupo: 'C' } },
+  { n: 4,  local: { tipo: '1', grupo: 'C' }, visita: { tipo: '2', grupo: 'F' } },
+  { n: 5,  local: { tipo: '1', grupo: 'I' }, visita: { tipo: '3', pools: ['C','D','F','G','H'] } },
+  { n: 6,  local: { tipo: '2', grupo: 'E' }, visita: { tipo: '2', grupo: 'I' } },
+  { n: 7,  local: { tipo: '1', grupo: 'A' }, visita: { tipo: '3', pools: ['C','E','F','H','I'] } },
+  { n: 8,  local: { tipo: '1', grupo: 'L' }, visita: { tipo: '3', pools: ['E','H','I','J','K'] } },
+  { n: 9,  local: { tipo: '1', grupo: 'D' }, visita: { tipo: '3', pools: ['B','E','F','I','J'] } },
+  { n: 10, local: { tipo: '1', grupo: 'G' }, visita: { tipo: '3', pools: ['A','E','H','I','J'] } },
+  { n: 11, local: { tipo: '2', grupo: 'K' }, visita: { tipo: '2', grupo: 'L' } },
+  { n: 12, local: { tipo: '1', grupo: 'H' }, visita: { tipo: '2', grupo: 'J' } },
+  { n: 13, local: { tipo: '1', grupo: 'B' }, visita: { tipo: '3', pools: ['E','F','G','I','J'] } },
+  { n: 14, local: { tipo: '1', grupo: 'J' }, visita: { tipo: '2', grupo: 'H' } },
+  { n: 15, local: { tipo: '1', grupo: 'K' }, visita: { tipo: '3', pools: ['D','E','I','J','L'] } },
+  { n: 16, local: { tipo: '2', grupo: 'D' }, visita: { tipo: '2', grupo: 'G' } },
 ]
 
 function getResultadoReal(p) {
@@ -85,37 +81,77 @@ export function clasificar(tablas) {
   }
 }
 
+// Todos los 32avos ya definidos por la FIFA (datos reales del torneo)
+const CONFIRMADOS = {
+  'r32-1':  { local: 'RSA', visita: 'CAN' },
+  'r32-2':  { local: 'GER', visita: 'PAR' },
+  'r32-3':  { local: 'NED', visita: 'MAR' },
+  'r32-4':  { local: 'BRA', visita: 'JPN' },
+  'r32-5':  { local: 'FRA', visita: 'SWE' },
+  'r32-6':  { local: 'CIV', visita: 'NOR' },
+  'r32-7':  { local: 'MEX', visita: 'ECU' },
+  'r32-8':  { local: 'ENG', visita: 'COD' },
+  'r32-9':  { local: 'USA', visita: 'BIH' },
+  'r32-10': { local: 'BEL', visita: 'SEN' },
+  'r32-11': { local: 'POR', visita: 'CRO' },
+  'r32-12': { local: 'ESP', visita: 'AUT' },
+  'r32-13': { local: 'SUI', visita: 'ALG' },
+  'r32-14': { local: 'ARG', visita: 'CPV' },
+  'r32-15': { local: 'COL', visita: 'GHA' },
+  'r32-16': { local: 'AUS', visita: 'EGY' },
+}
+
 function getEquipo(grupo, tipo, clasificados) {
   if (tipo === '1') return clasificados.primeros[grupo]
   if (tipo === '2') return clasificados.segundos[grupo]
   return null
 }
 
-function pickTercero(teams, ranking, used) {
+function getEquipoGrupo(teamId) {
+  const eq = equipos.find(e => e.id === teamId)
+  return eq ? eq.grupo : null
+}
+
+function pickTercero(pools, ranking, used) {
   for (const t of ranking) {
-    if (teams.includes(t.equipo) && !used.has(t.equipo)) return t.equipo
+    const grupo = getEquipoGrupo(t.equipo)
+    if (grupo && pools.includes(grupo) && !used.has(t.equipo)) return t.equipo
   }
   return null
 }
 
 export function generarEmparejamientos(clasificados) {
   const emparejamientos = []
+  const used = new Set()
 
-  // Fixed matches 1-12
-  for (const f of FIJOS) {
-    const local = getEquipo(f.local.grupo, f.local.tipo, clasificados)
-    const visita = getEquipo(f.visita.grupo, f.visita.tipo, clasificados)
-    emparejamientos.push({ partido_id: `r32-${f.n}`, local, visita })
+  for (const p of R32_PAIRINGS) {
+    let local = null
+    let visita = null
+
+    if (p.local.tipo === '3') {
+      local = pickTercero(p.local.pools, clasificados.tercerosRanking, used)
+      if (local) used.add(local)
+    } else {
+      local = getEquipo(p.local.grupo, p.local.tipo, clasificados)
+    }
+
+    if (p.visita.tipo === '3') {
+      visita = pickTercero(p.visita.pools, clasificados.tercerosRanking, used)
+      if (visita) used.add(visita)
+    } else {
+      visita = getEquipo(p.visita.grupo, p.visita.tipo, clasificados)
+    }
+
+    emparejamientos.push({ partido_id: `r32-${p.n}`, local, visita })
   }
 
-  // Third-place matches 13-16
-  const used = new Set()
-  for (const t of TERCEROS) {
-    const local = pickTercero(t.local, clasificados.tercerosRanking, used)
-    if (local) used.add(local)
-    const visita = pickTercero(t.visita, clasificados.tercerosRanking, used)
-    if (visita) used.add(visita)
-    emparejamientos.push({ partido_id: `r32-${t.n}`, local, visita })
+  // Sobreescribir con equipos confirmados por la FIFA
+  for (const e of emparejamientos) {
+    const c = CONFIRMADOS[e.partido_id]
+    if (c) {
+      if (c.local) e.local = c.local
+      if (c.visita) e.visita = c.visita
+    }
   }
 
   return emparejamientos

@@ -64,6 +64,8 @@ const useQuinielaStore = create((set, get) => ({
         for (const e of resE.data) {
           const idx = merged.findIndex(p => p.id === e.partido_id)
           if (idx !== -1) {
+            const orig = datosPartidos.find(p => p.id === e.partido_id)
+            if (orig && orig.local && orig.visita) continue
             merged[idx] = { ...merged[idx], local: e.local ?? merged[idx].local, visita: e.visita ?? merged[idx].visita }
           }
         }

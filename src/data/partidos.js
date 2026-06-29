@@ -47,10 +47,18 @@ const fechasR16 = ["2026-07-04","2026-07-04","2026-07-05","2026-07-05","2026-07-
 const fechasCF = ["2026-07-09","2026-07-10","2026-07-11","2026-07-11"]
 const fechasSF = ["2026-07-14","2026-07-15"]
 
+// 32avos de final — equipos reales de la FIFA
+const r32Equipos = [
+  ['RSA','CAN'], ['GER','PAR'], ['NED','MAR'], ['BRA','JPN'],
+  ['FRA','SWE'], ['CIV','NOR'], ['MEX','ECU'], ['ENG','COD'],
+  ['USA','BIH'], ['BEL','SEN'], ['POR','CRO'], ['ESP','AUT'],
+  ['SUI','ALG'], ['ARG','CPV'], ['COL','GHA'], ['AUS','EGY'],
+]
+
 let eliminatorias = []
 
 for (let i = 0; i < 16; i++) {
-  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, null, null, fechasR32[i]))
+  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, r32Equipos[i][0], r32Equipos[i][1], fechasR32[i]))
 }
 for (let i = 0; i < 8; i++) {
   eliminatorias.push(crearPartido(`r16-${i+1}`, 'r16', null, null, null, fechasR16[i]))
