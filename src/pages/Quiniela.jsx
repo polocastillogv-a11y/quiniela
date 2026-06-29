@@ -135,7 +135,7 @@ export default function Quiniela() {
             onClick={() => { setFaseActiva(f.id); setJornadaActiva(1) }}
             className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-bold tracking-wide transition-colors ${faseActiva === f.id ? 'bg-ocre text-white' : 'bg-cesped/5 text-cesped/60 hover:bg-cesped/10 hover:text-cesped'}`}
           >
-            {f.nombre} <span className="text-xs opacity-60 font-mono">(x{f.mult})</span>
+            {f.nombre} <span className="text-xs opacity-60 font-mono">{f.mult === 1 ? '(1 pts)' : `(${Math.round(1 * f.mult)} pts)`}</span>
           </button>
         ))}
         {sesion.tipo === 'admin' && faseActiva === 'r32' && (
