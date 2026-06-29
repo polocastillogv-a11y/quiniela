@@ -48,6 +48,7 @@ export default function Quiniela() {
     if (p.fase !== faseActiva) return false
     if (sesion.tipo === 'participante') {
       if (!sorteoLoaded) return false
+      if (p.fase !== 'grupos') return true
       return eqParticipante.length === 0 || eqParticipante.includes(p.local) || eqParticipante.includes(p.visita)
     }
     return true
