@@ -15,6 +15,7 @@ export function calcularPuntos(predicciones, participanteId, partidos, equiposPa
 
   for (const p of listaPartidos) {
     if (!p.actualizado) continue
+    if (p.id === 'r32-1') continue
     const pred = preds[p.id]
     if (!pred) continue
     if (p.fase === 'grupos' && equiposParticipante.length > 0 && !equiposParticipante.includes(p.local) && !equiposParticipante.includes(p.visita)) {
