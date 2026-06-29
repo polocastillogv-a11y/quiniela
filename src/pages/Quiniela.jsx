@@ -156,6 +156,12 @@ export default function Quiniela() {
         </div>
       )}
 
+      <div className="mb-6 text-center">
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-cesped/70 bg-cesped/5 px-4 py-2 rounded-full">
+          Cada pronóstico acertado en esta fase vale <span className="text-ocre font-black font-mono">{Math.round(1 * (fases.find(f => f.id === faseActiva)?.mult || 1))}</span> puntos
+        </span>
+      </div>
+
       <div className="space-y-6">
         {Object.entries(grouped).map(([grupo, pjs]) => (
           <div key={grupo}>
