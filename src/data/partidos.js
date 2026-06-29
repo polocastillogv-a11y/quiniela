@@ -16,8 +16,8 @@ export const jornadas = [
   { id: 3, nombre: 'Jornada 3', dias: '24-27 Jun' },
 ]
 
-function crearPartido(id, fase, grupo, local, visita, fecha, jornada) {
-  return { id, fase, grupo, local: local ?? null, visita: visita ?? null, marcador_local: null, marcador_visita: null, fecha: fecha || null, jornada: jornada || null, actualizado: false }
+function crearPartido(id, fase, grupo, local, visita, fecha, jornada, hora) {
+  return { id, fase, grupo, local: local ?? null, visita: visita ?? null, marcador_local: null, marcador_visita: null, fecha: fecha || null, jornada: jornada || null, hora: hora || null, actualizado: false }
 }
 
 const gruposLista = ['A','B','C','D','E','F','G','H','I','J','K','L']
@@ -47,18 +47,19 @@ const fechasR16 = ["2026-07-04","2026-07-04","2026-07-05","2026-07-05","2026-07-
 const fechasCF = ["2026-07-09","2026-07-10","2026-07-11","2026-07-11"]
 const fechasSF = ["2026-07-14","2026-07-15"]
 
-// 32avos de final — equipos reales de la FIFA
+// 32avos de final — equipos y horarios reales de la FIFA
 const r32Equipos = [
   ['RSA','CAN'], ['GER','PAR'], ['NED','MAR'], ['BRA','JPN'],
   ['FRA','SWE'], ['CIV','NOR'], ['MEX','ECU'], ['ENG','COD'],
   ['USA','BIH'], ['BEL','SEN'], ['POR','CRO'], ['ESP','AUT'],
   ['SUI','ALG'], ['ARG','CPV'], ['COL','GHA'], ['AUS','EGY'],
 ]
+const r32Horas = ['15:00','16:30','21:00','13:00','17:00','13:00','21:00','12:00','20:00','16:00','19:00','15:00','23:00','18:00','21:30','14:00']
 
 let eliminatorias = []
 
 for (let i = 0; i < 16; i++) {
-  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, r32Equipos[i][0], r32Equipos[i][1], fechasR32[i]))
+  eliminatorias.push(crearPartido(`r32-${i+1}`, 'r32', null, r32Equipos[i][0], r32Equipos[i][1], fechasR32[i], null, r32Horas[i]))
 }
 for (let i = 0; i < 8; i++) {
   eliminatorias.push(crearPartido(`r16-${i+1}`, 'r16', null, null, null, fechasR16[i]))

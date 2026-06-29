@@ -310,8 +310,9 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
     : null
 
   const acierto = realLabel && valor === realLabel
-  const hoyStr = new Date().toISOString().split('T')[0]
-  const empezado = p.fecha ? p.fecha <= hoyStr : false
+  const hoy = new Date()
+  const fechaHora = p.fecha && p.hora ? new Date(p.fecha + 'T' + p.hora) : null
+  const empezado = fechaHora ? fechaHora <= hoy : (p.fecha ? new Date(p.fecha + 'T23:59') <= hoy : false)
   const bloqueado = valor !== null || empezado || p.actualizado || p.live_status === 'live'
   const eqLocal = p.local ? nEq(p.local) : null
   const eqVisita = p.visita ? nEq(p.visita) : null
