@@ -73,22 +73,20 @@ const useQuinielaStore = create((set, get) => ({
         }
       }
 
-      set({ partidos: merged })
-
+      const predicciones = {}
       if (!resP.error && resP.data) {
-        const predicciones = {}
         for (const pr of resP.data) {
           if (!predicciones[pr.participante_id]) predicciones[pr.participante_id] = {}
           predicciones[pr.participante_id][pr.partido_id] = pr.valor
         }
-        set({ predicciones })
       }
+
+      set({ partidos: merged, predicciones, loaded: true })
     } catch (e) {
       console.warn('Error cargando quiniela:', e)
       const local = loadResultadosLocal()
-      set({ partidos: local.length > 0 ? mergeResultados(local) : datosPartidos.map(p => ({ ...p })) })
+      set({ partidos: local.length > 0 ? mergeResultados(local) : datosPartidos.map(p => ({ ...p })), predicciones: {}, loaded: true })
     }
-    set({ loaded: true })
   },
 
   fetchLiveScores: async () => {
