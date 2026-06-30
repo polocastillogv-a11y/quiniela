@@ -1,6 +1,6 @@
 import { partidos as datosPartidos, fases } from '../data/partidos'
 
-function getResultadoReal(p) {
+export function getResultadoReal(p) {
   if (p.marcador_local === null || p.marcador_visita === null) return null
   if (p.marcador_local > p.marcador_visita) return '1'
   if (p.marcador_visita > p.marcador_local) return '2'

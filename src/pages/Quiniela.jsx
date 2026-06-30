@@ -6,6 +6,7 @@ import useQuinielaStore from '../store/quinielaStore'
 import useSorteoStore from '../store/sorteoStore'
 import useSessionStore from '../store/sessionStore'
 import { fases, jornadas } from '../data/partidos'
+import { getResultadoReal } from '../utils/puntuacion'
 import { getEquipo as getEquipoData } from '../data/grupos'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -236,7 +237,7 @@ export default function Quiniela() {
                       return (
                         <span key={p.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
                           p.actualizado
-                            ? ((p.marcador_local > p.marcador_visita && v === '1') || (p.marcador_visita > p.marcador_local && v === '2') || (p.marcador_local === p.marcador_visita && v === 'X')
+                            ? (v === getResultadoReal(p)
                               ? 'bg-pasto/10 text-pasto' : 'bg-tinto/10 text-tinto')
                             : 'bg-cesped/5 text-cesped/60'
                         }`}>
@@ -322,9 +323,7 @@ function FilaParticipante({ partido: p, index, participanteId, getPrediccion, se
   const valor = getPrediccion(participanteId, p.id)
   const esGrupos = p.fase === 'grupos'
 
-  const realLabel = p.actualizado
-    ? (p.marcador_local > p.marcador_visita ? '1' : p.marcador_visita > p.marcador_local ? '2' : 'X')
-    : null
+  const realLabel = p.actualizado ? getResultadoReal(p) : null
 
   const acierto = realLabel && valor === realLabel
   const hoy = new Date()
