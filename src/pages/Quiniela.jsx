@@ -286,8 +286,11 @@ function GenerarR32Btn() {
 function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
   const [local, setLocal] = useState(p.marcador_local ?? '')
   const [visita, setVisita] = useState(p.marcador_visita ?? '')
+  const [penalLocal, setPenalLocal] = useState(p.penal_local ?? '')
+  const [penalVisita, setPenalVisita] = useState(p.penal_visita ?? '')
+  const esKnockout = p.fase !== 'grupos'
 
-  const guardar = () => actualizarResultado(p.id, local === '' ? null : Number(local), visita === '' ? null : Number(visita))
+  const guardar = () => actualizarResultado(p.id, local === '' ? null : Number(local), visita === '' ? null : Number(visita), penalLocal === '' ? null : Number(penalLocal), penalVisita === '' ? null : Number(penalVisita))
 
   return (
     <tr className="border-b border-cesped/5 last:border-0 hover:bg-cesped/[0.02]">
@@ -299,6 +302,14 @@ function FilaAdmin({ partido: p, index, actualizarResultado, mostrarFecha }) {
           <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={local} onChange={e => setLocal(e.target.value)} onBlur={guardar} min="0" />
           <span className="text-cesped/30 font-bold">-</span>
           <input type="number" className="w-12 px-2 py-1 bg-crema border border-cesped/30 rounded text-center text-sm font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={visita} onChange={e => setVisita(e.target.value)} onBlur={guardar} min="0" />
+          {esKnockout && (
+            <span className="ml-2 text-xs text-cesped/40">
+              <span className="font-mono">PEN</span>
+              <input type="number" className="w-10 px-1 py-1 ml-1 bg-tinto/5 border border-cesped/20 rounded text-center text-xs font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={penalLocal} onChange={e => setPenalLocal(e.target.value)} onBlur={guardar} min="0" />
+              <span className="mx-0.5 text-cesped/20">-</span>
+              <input type="number" className="w-10 px-1 py-1 bg-tinto/5 border border-cesped/20 rounded text-center text-xs font-mono text-cesped focus:outline-none focus:ring-2 focus:ring-ocre/40" value={penalVisita} onChange={e => setPenalVisita(e.target.value)} onBlur={guardar} min="0" />
+            </span>
+          )}
         </span>
       </td>
       <td className="py-3 pr-4 font-semibold text-tinta"><span className="inline-flex items-center gap-1.5">{p.visita && <FlagIcon code={p.visita} size={14} />}{nEq(p.visita)?.nombre || p.visita || '—'}</span></td>

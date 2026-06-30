@@ -11,6 +11,8 @@ function saveResultadosLocal(partidos) {
       partido_id: p.id,
       marcador_local: p.marcador_local,
       marcador_visita: p.marcador_visita,
+      penal_local: p.penal_local,
+      penal_visita: p.penal_visita,
       actualizado: p.actualizado,
     }))
     localStorage.setItem(LS_KEY, JSON.stringify(r))
@@ -32,7 +34,7 @@ function mergeResultados(resultados) {
   return datosPartidos.map(p => {
     const r = resultados.find(r => r.partido_id === p.id)
     return r
-      ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, actualizado: r.actualizado }
+      ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, penal_local: r.penal_local ?? null, penal_visita: r.penal_visita ?? null, actualizado: r.actualizado }
       : p
   })
 }
@@ -179,11 +181,13 @@ const useQuinielaStore = create((set, get) => ({
     set({ liveUpdating: false })
   },
 
-  actualizarResultado: async (partidoId, local, visita) => {
+  actualizarResultado: async (partidoId, local, visita, penalLocal, penalVisita) => {
     const payload = {
       partido_id: partidoId,
       marcador_local: local,
       marcador_visita: visita,
+      penal_local: penalLocal ?? null,
+      penal_visita: penalVisita ?? null,
       actualizado: local !== null && visita !== null,
     }
     try {
@@ -192,7 +196,7 @@ const useQuinielaStore = create((set, get) => ({
     set(state => {
       const partidos = state.partidos.map(p =>
         p.id === partidoId
-          ? { ...p, marcador_local: local, marcador_visita: visita, actualizado: local !== null && visita !== null, live_status: null }
+          ? { ...p, marcador_local: local, marcador_visita: visita, penal_local: penalLocal ?? null, penal_visita: penalVisita ?? null, actualizado: local !== null && visita !== null, live_status: null }
           : p
       )
       saveResultadosLocal(partidos)

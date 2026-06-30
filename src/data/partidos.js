@@ -17,7 +17,7 @@ export const jornadas = [
 ]
 
 function crearPartido(id, fase, grupo, local, visita, fecha, jornada, hora) {
-  return { id, fase, grupo, local: local ?? null, visita: visita ?? null, marcador_local: null, marcador_visita: null, fecha: fecha || null, jornada: jornada || null, hora: hora || null, actualizado: false }
+  return { id, fase, grupo, local: local ?? null, visita: visita ?? null, marcador_local: null, marcador_visita: null, penal_local: null, penal_visita: null, fecha: fecha || null, jornada: jornada || null, hora: hora || null, actualizado: false }
 }
 
 const gruposLista = ['A','B','C','D','E','F','G','H','I','J','K','L']

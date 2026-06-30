@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS resultados (
   partido_id TEXT PRIMARY KEY,
   marcador_local INTEGER,
   marcador_visita INTEGER,
+  penal_local INTEGER,
+  penal_visita INTEGER,
   actualizado BOOLEAN DEFAULT false
 );
 
