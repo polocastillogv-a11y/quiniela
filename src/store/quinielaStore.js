@@ -127,6 +127,9 @@ const useQuinielaStore = create((set, get) => ({
         if (idx === -1) return
         const prev = updated[idx]
 
+        // Don't override manually entered results (admin typed them, live_status is null)
+        if (prev.actualizado && prev.live_status === null) return
+
         let newActualizado = prev.actualizado
         let newLiveStatus = prev.live_status
         if (m.status === 'FT') {
