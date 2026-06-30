@@ -55,11 +55,21 @@ const useQuinielaStore = create((set, get) => ({
       ])
 
       let merged = datosPartidos.map(p => ({ ...p }))
+
+      // Apply Supabase results first
       if (!resR.error && resR.data?.length > 0) {
         merged = mergeResultados(resR.data)
-      } else {
-        const local = loadResultadosLocal()
-        if (local.length > 0) merged = mergeResultados(local)
+      }
+
+      // ALWAYS overlay localStorage on top — admin's manual entries take precedence
+      const local = loadResultadosLocal()
+      if (local.length > 0) {
+        merged = merged.map(p => {
+          const r = local.find(r => r.partido_id === p.id)
+          return r
+            ? { ...p, marcador_local: r.marcador_local, marcador_visita: r.marcador_visita, penal_local: r.penal_local ?? null, penal_visita: r.penal_visita ?? null, actualizado: r.actualizado }
+            : p
+        })
       }
 
       if (!resE.error && resE.data?.length > 0) {
@@ -141,7 +151,7 @@ const useQuinielaStore = create((set, get) => ({
         changed = true
 
         if (newActualizado && !prev.actualizado) {
-          ftBatch.push({ id: prev.id, local: m.homeScore, visita: m.awayScore })
+          ftBatch.push({ id: prev.id, local: m.homeScore, visita: m.awayScore, penal_local: prev.penal_local, penal_visita: prev.penal_visita })
         }
       })
 
@@ -159,6 +169,8 @@ const useQuinielaStore = create((set, get) => ({
               partido_id: ft.id,
               marcador_local: ft.local,
               marcador_visita: ft.visita,
+              penal_local: ft.penal_local ?? null,
+              penal_visita: ft.penal_visita ?? null,
               actualizado: true,
             }, { onConflict: 'partido_id' })
           } catch (e) {
